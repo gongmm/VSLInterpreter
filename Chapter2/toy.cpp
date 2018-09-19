@@ -3,12 +3,12 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <map>
 #include <memory>
+#include <regex>
 #include <string>
 #include <vector>
-#include <regex>
-#include <iostream>
 using namespace std;
 
 //===----------------------------------------------------------------------===//
@@ -41,12 +41,15 @@ static std::string IdentifierStr; // Filled in if tok_identifier
 static double NumVal;             // Filled in if tok_number
 static std::string Text;
 
+static bool recWhitespace(int LastChar);
+static int recKeyword();
 /// gettok - Return the next token from standard input.
 static int gettok() {
   static int LastChar = ' ';
-
+  IdentifierStr = "";
+  NumVal = 0;
+  Text = "";
   //识别分隔符并跳过
-  LastChar = getchar();
   while (recWhitespace(LastChar)) {
     LastChar = getchar();
   }
@@ -61,13 +64,11 @@ static int gettok() {
   //识别标识符
   if (isalpha(LastChar)) {
     IdentifierStr += LastChar;
-    LastChar = getchar();
-    while (isalpha(LastChar)) {
-      IdentifierStr += LastChar;
-      if (int keyword = recKeyword())
-        return keyword;
-      LastChar = getchar();
-    }
+      while (isalnum(LastChar=getchar())) {
+        IdentifierStr += LastChar;
+      }
+    if (int keyword = recKeyword())
+      return keyword;
     return VARIABLE;
   }
   //识别数字
@@ -78,7 +79,7 @@ static int gettok() {
       LastChar = getchar();
     } while (isdigit(LastChar) || LastChar == '.');
 
-    std::regex re("(.\..)+");
+    std::regex re("(.+\..+){2,}");
     if (regex_match(NumStr, re)) {
       cout << "含非法词：" << NumStr << endl;
       return 0;
@@ -477,11 +478,10 @@ static void MainLoop() {
       break;
     default:
       LogErrorP("Expected 'FUNC' ");
-      break;
+      return;
     }
   }
 }
-
 
 //===----------------------------------------------------------------------===//
 // Main driver code.
