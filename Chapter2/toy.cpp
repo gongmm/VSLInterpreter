@@ -323,9 +323,9 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
   switch (CurTok) {
   default:
     return LogError("unknown token when expecting an expression");
-  case tok_identifier:
+  case VARIABLE:
     return ParseIdentifierExpr();
-  case tok_number:
+  case INTEGER:
     return ParseNumberExpr();
   case '(':
     return ParseParenExpr();
@@ -383,7 +383,7 @@ static std::unique_ptr<ExprAST> ParseExpression() {
 /// prototype
 ///   ::= id '(' id* ')'
 static std::unique_ptr<PrototypeAST> ParsePrototype() {
-  if (CurTok != tok_identifier)
+  if (CurTok != VARIABLE)
     return LogErrorP("Expected function name in prototype");
 
   std::string FnName = IdentifierStr;
@@ -393,7 +393,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
     return LogErrorP("Expected '(' in prototype");
 
   std::vector<std::string> ArgNames;
-  while (getNextToken() == tok_identifier)
+  while (getNextToken() == VARIABLE)
     ArgNames.push_back(IdentifierStr);
   if (CurTok != ')')
     return LogErrorP("Expected ')' in prototype");
@@ -467,26 +467,21 @@ static void HandleTopLevelExpression() {
 
 /// top ::= definition | external | expression | ';'
 static void MainLoop() {
-  while (true) {
+  while (1) {
     fprintf(stderr, "ready> ");
     switch (CurTok) {
-    case tok_eof:
+    case TOKEOF:
       return;
-    case ';': // ignore top-level semicolons.
-      getNextToken();
-      break;
-    case tok_def:
+    case FUNC:
       HandleDefinition();
       break;
-    case tok_extern:
-      HandleExtern();
-      break;
     default:
-      HandleTopLevelExpression();
+      LogErrorP("Expected 'FUNC' ");
       break;
     }
   }
 }
+
 
 //===----------------------------------------------------------------------===//
 // Main driver code.
