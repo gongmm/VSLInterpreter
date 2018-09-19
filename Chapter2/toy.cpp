@@ -7,6 +7,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <regex>
+#include <iostream>
+using namespace std;
 
 //===----------------------------------------------------------------------===//
 // Lexer
@@ -15,69 +18,130 @@
 // The lexer returns tokens [0-255] if it is an unknown character, otherwise one
 // of these for known things.
 enum Token {
-  tok_eof = -1,
-
-  // commands
-  tok_def = -2,
-  tok_extern = -3,
-
-  // primary
-  tok_identifier = -4,
-  tok_number = -5
+  VARIABLE = -1,
+  INTEGER = -2,
+  TEXT = -3,
+  ASSIGN_SYMBOL = -4,
+  FUNC = -5,
+  PRINT = -6,
+  RETURN = -7,
+  CONTINUE = -8,
+  IF = -9,
+  THEN = -10,
+  ELSE = -11,
+  FI = -12,
+  WHILE = -13,
+  DO = -14,
+  DONE = -15,
+  VAR = -16,
+  TOKEOF = -17
 };
 
 static std::string IdentifierStr; // Filled in if tok_identifier
 static double NumVal;             // Filled in if tok_number
+static std::string Text;
 
 /// gettok - Return the next token from standard input.
 static int gettok() {
   static int LastChar = ' ';
 
-  // Skip any whitespace.
-  while (isspace(LastChar))
+  //识别分隔符并跳过
+  LastChar = getchar();
+  while (recWhitespace(LastChar)) {
     LastChar = getchar();
-
-  if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
-    IdentifierStr = LastChar;
-    while (isalnum((LastChar = getchar())))
-      IdentifierStr += LastChar;
-
-    if (IdentifierStr == "def")
-      return tok_def;
-    if (IdentifierStr == "extern")
-      return tok_extern;
-    return tok_identifier;
   }
-
-  if (isdigit(LastChar) || LastChar == '.') { // Number: [0-9.]+
+  //识别注释
+  if (LastChar == '/') {
+    LastChar = getchar();
+    if (LastChar == '/')
+      while (LastChar != '\n')
+        LastChar = getchar();
+    LastChar = getchar();
+  }
+  //识别标识符
+  if (isalpha(LastChar)) {
+    IdentifierStr += LastChar;
+    LastChar = getchar();
+    while (isalpha(LastChar)) {
+      IdentifierStr += LastChar;
+      if (int keyword = recKeyword())
+        return keyword;
+      LastChar = getchar();
+    }
+    return VARIABLE;
+  }
+  //识别数字
+  if (isdigit(LastChar)) {
     std::string NumStr;
     do {
       NumStr += LastChar;
       LastChar = getchar();
     } while (isdigit(LastChar) || LastChar == '.');
 
-    NumVal = strtod(NumStr.c_str(), nullptr);
-    return tok_number;
+    std::regex re("(.\..)+");
+    if (regex_match(NumStr, re)) {
+      cout << "含非法词：" << NumStr << endl;
+      return 0;
+    }
+    NumVal = strtod(NumStr.c_str(), 0);
+    return INTEGER;
   }
-
-  if (LastChar == '#') {
-    // Comment until end of line.
-    do
+  //识别text
+  if (LastChar == '"') {
+    LastChar = getchar();
+    while (LastChar != '"') {
+      Text += LastChar;
       LastChar = getchar();
-    while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
-
-    if (LastChar != EOF)
-      return gettok();
+    }
+    return TEXT;
   }
-
-  // Check for end of file.  Don't eat the EOF.
+  //识别赋值符号
+  if (LastChar == ':') {
+    LastChar = getchar();
+    if (LastChar == '=')
+      return ASSIGN_SYMBOL;
+  }
   if (LastChar == EOF)
-    return tok_eof;
+    return TOKEOF;
 
-  // Otherwise, just return the character as its ascii value.
+  // 否则只是返回字符的ascii码
   int ThisChar = LastChar;
   LastChar = getchar();
   return ThisChar;
+}
+/// 判断是否是空格、\t或\n
+static bool recWhitespace(int LastChar) {
+  if (LastChar == ' ' || LastChar == '\t' || LastChar == '\n')
+    return true;
+  return false;
+}
+/// 判断是哪一个标识符
+static int recKeyword() {
+  if (IdentifierStr == "FUNC")
+    return FUNC;
+  else if (IdentifierStr == "PRINT")
+    return PRINT;
+  else if (IdentifierStr == "RETURN")
+    return RETURN;
+  else if (IdentifierStr == "CONTINUE")
+    return CONTINUE;
+  else if (IdentifierStr == "IF")
+    return IF;
+  else if (IdentifierStr == "THEN")
+    return THEN;
+  else if (IdentifierStr == "ELSE")
+    return ELSE;
+  else if (IdentifierStr == "FI")
+    return FI;
+  else if (IdentifierStr == "WHILE")
+    return WHILE;
+  else if (IdentifierStr == "DO")
+    return DO;
+  else if (IdentifierStr == "DONE")
+    return DONE;
+  else if (IdentifierStr == "VAR")
+    return VAR;
+  return Token();
 }
 
 //===----------------------------------------------------------------------===//
@@ -300,8 +364,8 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
     }
 
     // Merge LHS/RHS.
-    LHS = llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS),
-                                           std::move(RHS));
+    LHS =
+        llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
   }
 }
 
