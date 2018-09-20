@@ -4,7 +4,7 @@
 /// top ::= definition | external | expression | ';'
 void MainLoop() {
   while (1) {
-    fprintf(stderr, "ready> ");
+    /*fprintf(stderr, "ready> ");*/
     switch (CurTok) {
     case TOKEOF:
       return;
