@@ -52,9 +52,8 @@ std::unique_ptr<ExprAST> ParseMinusExpr() {
     return nullptr;
 
   auto LHS = llvm::make_unique<NumberExprAST>(0);
-  getNextToken(); // consume the number
   
-  llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(V));
+  return llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(V));
   
 }
 
