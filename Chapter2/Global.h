@@ -56,5 +56,6 @@ extern std::unique_ptr<ExprAST> LogError(const char *Str);
 extern std::unique_ptr<PrototypeAST> LogErrorP(const char *Str);
 
 extern std::unique_ptr<ExprAST> ParseExpression();
+extern std::unique_ptr<StatementAST> ParseStatement();
 extern void HandleDefinition();
 #endif // ! GLOBAL
