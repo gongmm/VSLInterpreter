@@ -39,6 +39,25 @@ std::unique_ptr<ExprAST> ParseParenExpr() {
 	return V;
 }
 
+/// minusexpr ::= '-' expression
+std::unique_ptr<ExprAST> ParseMinusExpr() {
+  
+  int BinOp = CurTok;
+
+  getNextToken(); // eat -.
+
+  auto V = ParseExpression();
+  
+  if (!V)
+    return nullptr;
+
+  auto LHS = llvm::make_unique<NumberExprAST>(0);
+  getNextToken(); // consume the number
+  
+  llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(V));
+  
+}
+
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
@@ -89,7 +108,10 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 		return ParseNumberExpr();
 	case '(':
 		return ParseParenExpr();
+    case '-':
+        return ParseMinusExpr();
 	}
+
 }
 
 /// binoprhs
