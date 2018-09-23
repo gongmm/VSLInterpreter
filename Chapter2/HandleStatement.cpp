@@ -56,13 +56,13 @@ static std::unique_ptr<StatAST> ParseReturnStat() {
 static std::unique_ptr<StatAST> ParsePrintStat() {
 	std::vector<std::string> Texts;
 	if (CurTok != TEXT)
-		LogErrorS("Expected Text in Print statement");
+		return LogErrorS("Expected Text in Print statement");
 	Texts.push_back(Text);
 	getNextToken();
-	while (CurTok != ',') {
+	while (CurTok == ',') {
 		getNextToken();
 		if (CurTok != TEXT)
-			LogErrorS("Expected Text in Print statement");
+			return LogErrorS("Expected Text in Print statement");
 		Texts.push_back(Text);
 		getNextToken();
 	}
@@ -72,21 +72,21 @@ static std::unique_ptr<StatAST> ParsePrintStat() {
 static std::unique_ptr<StatAST> ParseIfStat() {
 	auto IfCondition = std::move(ParseExpression());
 	if (CurTok != THEN) {
-		LogErrorS("Expected THEN in If statement");
+		return LogErrorS("Expected THEN in If statement");
 	}
 	getNextToken();
 	auto ThenStat = std::move(ParseStatement());
 	if (CurTok != ELSE) {
-		getNextToken();
 		if (CurTok != FI) {
-			LogErrorS("Expected FI in If statement");
+			return LogErrorS("Expected FI in If statement");
 		}
+		getNextToken();
 		return llvm::make_unique<IfStatAST>(IfCondition, ThenStat);
 	}
 	getNextToken();
 	std::unique_ptr<StatAST>ElseStat = ParseStatement();
 	if (CurTok != FI) {
-		LogErrorS("Expected FI in If statement");
+		return LogErrorS("Expected FI in If statement");
 	}
 	getNextToken();
 	return llvm::make_unique<IfStatAST>(IfCondition, ThenStat, ElseStat);
@@ -95,11 +95,11 @@ static std::unique_ptr<StatAST> ParseIfStat() {
 static std::unique_ptr<StatAST> ParseWhileStat() {
 	auto WhileCondition = std::move(ParseExpression());
 	if (CurTok != DO)
-		LogErrorS("Expected DO in While statement");
+		return LogErrorS("Expected DO in While statement");
 	getNextToken();
 	auto DoStat = std::move(ParseStatement());
 	if (CurTok != DONE)
-		LogErrorS("Expected DONE in While statement");
+		return LogErrorS("Expected DONE in While statement");
 	getNextToken();
 	return llvm::make_unique<WhileStatAST>(WhileCondition, DoStat);
 }
@@ -108,7 +108,7 @@ static std::unique_ptr<StatAST> ParseBlockStat() {
 	std::vector<VariableExprAST>variables;
 	std::vector<StatAST>statements;
 	if (CurTok != VAR) {
-		LogErrorS("Expected VAR in Block statement");
+		return LogErrorS("Expected VAR in Block statement");
 	}
 	do {
 		getNextToken();
@@ -123,5 +123,6 @@ static std::unique_ptr<StatAST> ParseBlockStat() {
 	do {
 		ParseStatement();
 	} while (CurTok != '}');
+	getNextToken();
 	return  llvm::make_unique<BlockStatAST>(variables, statements);
 }
