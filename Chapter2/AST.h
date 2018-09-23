@@ -72,6 +72,50 @@ public:
 };
 
 /// StatementAST
-class StatementAST {
+//新定义Statement新添加结构定义
+class StatAST {
+public:
+	virtual ~StatAST() = default;
+};
 
+/// NumberExprAST - Expression class for numeric literals like "1.0".
+class AssignStatAST : public StatAST {
+	std::string Name;
+	std::unique_ptr<ExprAST> Val;
+public:
+	AssignStatAST(const std::string &Name, std::unique_ptr<ExprAST> Val) : Name(), Val(std::move(Val)) {}
+};
+class ReturnStatAST : public StatAST {
+	std::unique_ptr<ExprAST> Body;
+public:
+	ReturnStatAST(std::unique_ptr<ExprAST> Body) : Body(std::move(Body)) {}
+};
+class PrintStatAST : public StatAST {
+	std::vector<std::string> Texts;
+public:
+	PrintStatAST(std::vector<std::string> Texts) : Texts(std::move(Texts)) {}
+};
+class IfStatAST : public StatAST {
+	std::unique_ptr<ExprAST> IfCondition;
+	std::unique_ptr<StatAST> ThenStat;
+	std::unique_ptr<StatAST> ElseStat;
+public:
+	IfStatAST(std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat, std::unique_ptr<StatAST> ElseStat)
+		: IfCondition(std::move(IfCondition)), ThenStat(std::move(ThenStat)), ElseStat(std::move(ElseStat)) {}
+	IfStatAST(std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat) : IfCondition(std::move(IfCondition)),
+		ThenStat(std::move(ThenStat)), ElseStat(nullptr) {}
+};
+class WhileStatAST : public StatAST {
+	std::unique_ptr<ExprAST> WhileCondition;
+	std::unique_ptr<StatAST> DoStat;
+public:
+	WhileStatAST(std::unique_ptr<ExprAST> WhileCondition, std::unique_ptr<StatAST> DoStat)
+		: WhileCondition(std::move(WhileCondition)), DoStat(std::move(DoStat)) {}
+};
+class BlockStatAST : public StatAST {
+	std::vector<VariableExprAST> Variables;
+	std::vector<StatAST> Statements;
+public:
+	BlockStatAST(std::vector<VariableExprAST> Variables, std::vector<StatAST> Statements)
+		: Variables(std::move(Variables)), Statements(std::move(Statements)) {}
 };
