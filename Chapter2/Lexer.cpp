@@ -103,8 +103,11 @@ int gettok() {
 	//Ê¶±ð¸³Öµ·ûºÅ
 	if (LastChar == ':') {
 		LastChar = getchar();
-		if (LastChar == '=')
-			return ASSIGN_SYMBOL;
+          if (LastChar == '=') {
+			  LastChar = getchar();
+			  return ASSIGN_SYMBOL;
+          }
+			
 	}
 	if (LastChar == EOF)
 		return TOKEOF;

@@ -37,7 +37,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
 
 /// definition ::= 'def' prototype expression
 std::unique_ptr<FunctionAST> ParseDefinition() {
-  getNextToken(); // eat def.
+  getNextToken(); // eat FUNC
   auto Proto = ParsePrototype();
   if (!Proto)
     return nullptr;
