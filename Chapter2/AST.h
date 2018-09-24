@@ -83,7 +83,7 @@ class AssignStatAST : public StatAST {
 	std::string Name;
 	std::unique_ptr<ExprAST> Val;
 public:
-	AssignStatAST(const std::string &Name, std::unique_ptr<ExprAST> Val) : Name(), Val(std::move(Val)) {}
+	AssignStatAST(const std::string &Name, std::unique_ptr<ExprAST> Val) : Name(Name), Val(std::move(Val)) {}
 };
 class ReturnStatAST : public StatAST {
 	std::unique_ptr<ExprAST> Body;
