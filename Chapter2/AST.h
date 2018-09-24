@@ -113,9 +113,9 @@ public:
 		: WhileCondition(std::move(WhileCondition)), DoStat(std::move(DoStat)) {}
 };
 class BlockStatAST : public StatAST {
-	std::vector<VariableExprAST> Variables;
-	std::vector<StatAST> Statements;
+	std::vector<std::unique_ptr<ExprAST>> Variables;
+	std::vector<std::unique_ptr<StatAST>> Statements;
 public:
-	BlockStatAST(std::vector<VariableExprAST> Variables, std::vector<StatAST> Statements)
+	BlockStatAST(std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
 		: Variables(std::move(Variables)), Statements(std::move(Statements)) {}
 };
