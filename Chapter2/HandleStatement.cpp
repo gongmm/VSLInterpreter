@@ -56,19 +56,27 @@ std::unique_ptr<StatAST> ParseReturnStat() {
 }
 //Print Statement
 std::unique_ptr<StatAST> ParsePrintStat() {
-	std::vector<std::string> Texts;
-	if (CurTok != TEXT)
-		return LogErrorS("Expected Text in Print statement");
-	Texts.push_back(Text);
-	getNextToken();
-	while (CurTok == ',') {
-		getNextToken();
-		if (CurTok != TEXT)
-			return LogErrorS("Expected Text in Print statement");
-		Texts.push_back(Text);
+	std::vector<std::unique_ptr<ExprAST>> Texts;
+	/*if (CurTok != TEXT)
+		return LogErrorS("Expected Text in Print statement");*/
+	if (CurTok == TEXT) {
+		Texts.push_back(llvm::make_unique<TextExprAST>(Text));
 		getNextToken();
 	}
-	return llvm::make_unique<PrintStatAST>(Texts);
+	else {
+		Texts.push_back(std::move(ParseExpression()));
+	}
+	while (CurTok == ','){
+		getNextToken();
+		 if (CurTok == TEXT) {
+			 Texts.push_back(llvm::make_unique<TextExprAST>(Text));
+			 getNextToken();
+		 }
+		 else {
+			 Texts.push_back(std::move(ParseExpression()));
+		 }
+	}
+	return llvm::make_unique<PrintStatAST>(std::move(Texts));
 }
 //If Statement
 std::unique_ptr<StatAST> ParseIfStat() {
@@ -110,10 +118,7 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 	//std::vector<VariableExprAST>variables;
 	std::vector<std::unique_ptr<ExprAST>> variables;
 	std::vector<std::unique_ptr<StatAST>> statements;
-	if (CurTok != VAR) {
-		return LogErrorS("Expected VAR in Block statement");
-	}
-	do {
+	while (CurTok == VAR){
 		getNextToken();
 		do {
 			/*VariableExprAST* ptr = dynamic_cast<VariableExprAST*>(ParseIdentifierExpr().release());
@@ -127,7 +132,7 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 				break;
 			getNextToken();
 		} while (CurTok == VARIABLE);
-	} while (CurTok == VAR);
+	}
 	do {
 		if (auto stat = ParseStatement())
 			statements.push_back(std::move(stat));

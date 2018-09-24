@@ -45,7 +45,13 @@ public:
               std::vector<std::unique_ptr<ExprAST>> Args)
       : Callee(Callee), Args(std::move(Args)) {}
 };
+class TextExprAST : public ExprAST {
+	std::string Text;
 
+public:
+	TextExprAST(const std::string &Text)
+		: Text(Text) {}
+};
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
@@ -91,9 +97,9 @@ public:
 	ReturnStatAST(std::unique_ptr<ExprAST> Body) : Body(std::move(Body)) {}
 };
 class PrintStatAST : public StatAST {
-	std::vector<std::string> Texts;
+	std::vector<std::unique_ptr<ExprAST>> Texts;
 public:
-	PrintStatAST(std::vector<std::string> Texts) : Texts(std::move(Texts)) {}
+	PrintStatAST(std::vector<std::unique_ptr<ExprAST>> Texts) : Texts(std::move(Texts)) {}
 };
 class ContinueStatAST : public StatAST {
 };
