@@ -119,8 +119,9 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 			variables.push_back(*ptr);*/
 			if (auto Arg = ParseIdentifierExpr())
 				variables.push_back(std::move(Arg));
-			else
-				return nullptr;
+			/*else
+				return nullptr;*/
+			//若返回空 要报错
 			if (CurTok != ',')
 				break;
 			getNextToken();
@@ -129,8 +130,9 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 	do {
 		if (auto stat = ParseStatement())
 			statements.push_back(std::move(stat));
-		else
-			return nullptr;
+		/*else
+			return nullptr;*/
+		//错返回空 要报错
 	} while (CurTok != '}');
 	getNextToken();
 	return  llvm::make_unique<BlockStatAST>(std::move(variables), std::move(statements));
