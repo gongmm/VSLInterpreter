@@ -95,6 +95,8 @@ class PrintStatAST : public StatAST {
 public:
 	PrintStatAST(std::vector<std::string> Texts) : Texts(std::move(Texts)) {}
 };
+class ContinueStatAST : public StatAST {
+};
 class IfStatAST : public StatAST {
 	std::unique_ptr<ExprAST> IfCondition;
 	std::unique_ptr<StatAST> ThenStat;

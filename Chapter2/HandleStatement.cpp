@@ -26,7 +26,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 		return ParsePrintStat();
 	case CONTINUE:
 		getNextToken();
-		return llvm::make_unique<StatAST>();//语义分析可能出现问题
+		return llvm::make_unique<ContinueStatAST>();//语义分析可能出现问题
 	case IF:
 		getNextToken();
 		return ParseIfStat();
@@ -37,6 +37,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 		getNextToken();
 		return ParseBlockStat();
 	default:
+		getNextToken();
 		return LogErrorS("unknown token when expecting an statement");
 	}
 }
