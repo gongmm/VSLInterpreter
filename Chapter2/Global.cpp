@@ -25,3 +25,8 @@ std::unique_ptr<PrototypeAST> LogErrorP(const char *Str) {
 	LogError(Str);
 	return nullptr;
 }
+//新添加Statement报错函数
+std::unique_ptr<StatAST> LogErrorS(const char *Str) {
+	LogError(Str);
+	return nullptr;
+}

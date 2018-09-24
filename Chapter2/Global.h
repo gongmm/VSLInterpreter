@@ -54,8 +54,13 @@ extern std::map<char, int> BinopPrecedence;
 
 extern std::unique_ptr<ExprAST> LogError(const char *Str);
 extern std::unique_ptr<PrototypeAST> LogErrorP(const char *Str);
+//新增报错函数
+std::unique_ptr<StatAST> LogErrorS(const char *Str);
 
 extern std::unique_ptr<ExprAST> ParseExpression();
-extern std::unique_ptr<StatementAST> ParseStatement();
+//statement函数定义
+extern std::unique_ptr<StatAST> ParseStatement();
+//statement函数内要用更改
+std::unique_ptr<ExprAST> ParseIdentifierExpr();
 extern void HandleDefinition();
 #endif // ! GLOBAL
