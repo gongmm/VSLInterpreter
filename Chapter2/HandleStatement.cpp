@@ -26,7 +26,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 		return ParsePrintStat();
 	case CONTINUE:
 		getNextToken();
-		return llvm::make_unique<StatAST>();
+		return llvm::make_unique<StatAST>();//语义分析可能出现问题
 	case IF:
 		getNextToken();
 		return ParseIfStat();
@@ -46,6 +46,7 @@ std::unique_ptr<StatAST> ParseAssignStat() {
 	getNextToken();
 	if (CurTok != ASSIGN_SYMBOL)
 		return LogErrorS("Expected := in assignment statement");
+	getNextToken();
 	return llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
 }
 //Return Statement
