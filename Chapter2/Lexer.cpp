@@ -98,6 +98,7 @@ int gettok() {
 			Text += LastChar;
 			LastChar = getchar();
 		}
+        LastChar = getchar();
 		return TEXT;
 	}
 	//Ê¶±ð¸³Öµ·ûºÅ
