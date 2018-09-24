@@ -47,7 +47,7 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
   // TODO: 这个返回只是测试用，实际使用时请删除
   /*return llvm::make_unique<FunctionAST>(
       std::move(Proto), std::move(llvm::make_unique<VariableExprAST>("ats")));*/
-  // return nullptr;
+   return nullptr;
 }
 
 void HandleDefinition() {
