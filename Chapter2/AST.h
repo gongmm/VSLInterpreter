@@ -59,15 +59,15 @@ public:
 
   const std::string &getName() const { return Name; }
 };
-
+class StatAST;
 /// FunctionAST - This class represents a function definition itself.
 class FunctionAST {
   std::unique_ptr<PrototypeAST> Proto;
-  std::unique_ptr<ExprAST> Body;
+  std::unique_ptr<StatAST> Body;
 
 public:
   FunctionAST(std::unique_ptr<PrototypeAST> Proto,
-              std::unique_ptr<ExprAST> Body)
+              std::unique_ptr<StatAST> Body)
       : Proto(std::move(Proto)), Body(std::move(Body)) {}
 };
 
