@@ -14,7 +14,7 @@ static std::unique_ptr<StatAST> ParsePrintStat();
 static std::unique_ptr<StatAST> ParseIfStat();
 static std::unique_ptr<StatAST> ParseWhileStat();
 static std::unique_ptr<StatAST> ParseBlockStat();
-static std::unique_ptr<StatAST> ParseStatement() {
+std::unique_ptr<StatAST> ParseStatement() {
 	switch (CurTok) {
 	case VARIABLE:
 		return ParseAssignStat();
