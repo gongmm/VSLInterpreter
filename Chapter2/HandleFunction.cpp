@@ -44,15 +44,14 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
 
   if (auto S = ParseStatement())
     return llvm::make_unique<FunctionAST>(std::move(Proto), std::move(S));
-  // TODO: 这个返回只是测试用，实际使用时请删除
-  /*return llvm::make_unique<FunctionAST>(
-      std::move(Proto), std::move(llvm::make_unique<VariableExprAST>("ats")));*/
+
    return nullptr;
 }
 
 void HandleDefinition() {
   if (ParseDefinition()) {
-    fprintf(stderr, "Parsed a function definition.\n");
+    //fprintf(stderr, "Parsed a function definition.\n");
+    outputToTxt("Parsed a function definition.");
   } else {
     // Skip token for error recovery.
     getNextToken();
