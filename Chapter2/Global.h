@@ -53,7 +53,7 @@ extern int getNextToken();
 extern std::map<char, int> BinopPrecedence;
 
 /// 输出至文件
-extern void outputToTxt(std::string str);
+void outputToTxt(std::string str);
 /// 缩进指示
 extern int indent;
 

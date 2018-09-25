@@ -37,6 +37,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
 
 /// definition ::= 'def' prototype expression
 std::unique_ptr<FunctionAST> ParseDefinition() {
+  outputToTxt("FUNCTION\n");
   getNextToken(); // eat FUNC
   auto Proto = ParsePrototype();
   if (!Proto)
@@ -51,7 +52,7 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
 void HandleDefinition() {
   if (ParseDefinition()) {
     //fprintf(stderr, "Parsed a function definition.\n");
-    outputToTxt("FUNCTION.");
+    /*outputToTxt("FUNCTION.");*/
   } else {
     // Skip token for error recovery.
     getNextToken();
