@@ -17,6 +17,8 @@ int getNextToken() { return CurTok = gettok(); }
 /// defined.
 std::map<char, int> BinopPrecedence;
 
+int indent = 0;
+
 /// 输出至文件
 static std::ofstream fout;
 static bool isFirstOpenFile = true;
