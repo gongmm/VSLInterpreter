@@ -124,9 +124,11 @@ std::unique_ptr<StatAST> ParseIfStat() {
 	indent--;
 	if (CurTok != ELSE) {
 		if (CurTok != FI) {
+			indent = indentBefore;
 			return LogErrorS("Expected FI in If statement");
 		}
 		getNextToken();
+		indent = indentBefore;
 		return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat));
 	}
 	print("ELSE statement\n");
@@ -135,28 +137,38 @@ std::unique_ptr<StatAST> ParseIfStat() {
 	std::unique_ptr<StatAST>ElseStat = ParseStatement();
 	indent--;
 	if (CurTok != FI) {
+		indent = indentBefore;
 		return LogErrorS("Expected FI in If statement");
 	}
-	print("FI keyword");
+	print("FI keyword\n");
 	indent = indentBefore;
 	getNextToken();
 	return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat), std::move(ElseStat));
 }
 //While Statement
 std::unique_ptr<StatAST> ParseWhileStat() {
+	int indentBefore = indent;
 	print("while-stat\n");
-	auto WhileCondition = std::move(ParseExpression());
-	if (CurTok != DO)
-		return LogErrorS("Expected DO in While statement");
 	indent++;
+	print("do-condition\n");
+	indent++;
+	auto WhileCondition = std::move(ParseExpression());
+	indent--;
+	if (CurTok != DO) {
+		indent = indentBefore;
+		return LogErrorS("Expected DO in While statement");
+	}
 	print("DO statement\n");
 	getNextToken();
 	indent++;
 	auto DoStat = std::move(ParseStatement());
 	indent--;
-	if (CurTok != DONE)
+	if (CurTok != DONE) {
+		indent = indentBefore;
 		return LogErrorS("Expected DONE in While statement");
-	print("DONE");
+	}
+	print("DONE keyword\n");
+	indent = indentBefore;
 	getNextToken();
 	return llvm::make_unique<WhileStatAST>(std::move(WhileCondition), std::move(DoStat));
 }
@@ -184,7 +196,6 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 			getNextToken();
 		} while (CurTok == VARIABLE);
 	}
-	indent--;
 	print("statement-list\n");
 	do {
 		indent++;
