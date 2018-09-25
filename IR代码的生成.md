@@ -1,6 +1,6 @@
-#Generate LLVM IR
+# Generate LLVM IR
 
-####Code Generation Setup
+#### Code Generation Setup
 
 1. 在每个AST类中定义虚拟代码生成（codegen）方法，用于输出该AST节点的IR及其依赖的所有内容，并返回一个LLVM Value对象。
 
@@ -46,7 +46,7 @@ Value *ErrorV(const char *Str) { Error(Str); return 0; }
 
 在生成代码之前必须先设置好`Builder`对象，指明写入代码的位置。
 
-####Expression Code Generation
+#### Expression Code Generation
 
 1. 数值常量
 
@@ -139,9 +139,7 @@ LLVM Module是容纳即时编译的函数的容器，通过为每个函数指定
 
 LLVM默认使用本机C调用约定，允许这些调用也调用标准库函数，如“sin”和“cos”，无需额外的工作。
 
-
-
-####Function Code Generation
+#### Function Code Generation
 
 1. 原型
 
