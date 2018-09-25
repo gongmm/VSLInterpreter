@@ -17,13 +17,16 @@ int GetTokPrecedence() {
 	return TokPrec;
 }
 
+//¹¤¾ßº¯Êý
+extern void print(std::string str);
+
 //std::unique_ptr<ExprAST> ParseExpression();
 
 /// numberexpr ::= number
 std::unique_ptr<ExprAST> ParseNumberExpr() {
 	auto Result = llvm::make_unique<NumberExprAST>(NumVal);
 	getNextToken(); // consume the number
-    outputToTxt("number-expression");
+    print("number-expression\n");
 	return std::move(Result);
 }
 
@@ -37,7 +40,7 @@ std::unique_ptr<ExprAST> ParseParenExpr() {
 	if (CurTok != ')')
 		return LogError("expected ')'");
 	getNextToken(); // eat ).
-	outputToTxt("paren-expression");
+	print("paren-expression\n");
 	return V;
 }
 
@@ -55,7 +58,7 @@ std::unique_ptr<ExprAST> ParseMinusExpr() {
 
   auto LHS = llvm::make_unique<NumberExprAST>(0);
   
-  outputToTxt("minus-expression");
+  print("minus-expression\n");
   return llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(V));
   
 }
@@ -69,7 +72,7 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	getNextToken(); // eat identifier.
 
 	if (CurTok != '('){ // Simple variable ref.
-		outputToTxt("varible-reference-expression");
+		print("varible-reference-expression\n");
 		return llvm::make_unique<VariableExprAST>(IdName);
 	}
 	// Call.
@@ -93,7 +96,7 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 
 	// Eat the ')'.
 	getNextToken();
-	outputToTxt("call-expression");
+	print("call-expression\n");
 	return llvm::make_unique<CallExprAST>(IdName, std::move(Args));
 }
 
@@ -161,6 +164,6 @@ std::unique_ptr<ExprAST> ParseExpression() {
 	auto LHS = ParsePrimary();
 	if (!LHS)
 		return nullptr;
-	outputToTxt("binary-expression");
+	print("binary-expression\n");
 	return ParseBinOpRHS(0, std::move(LHS));
 }
