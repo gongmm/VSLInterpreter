@@ -1,0 +1,44 @@
+运行方式：
+1. 源代码位于Chapter2文件夹下。
+2. 运行后命令行显示“ready> ”后，输入VSL语句，输入^Z完成输入。
+3. 语法分析结果输出于output.txt。
+
+注：
+*GitHub中账号对应人员：
+    ·Panda98：2016302580094 潘艳玥
+    ·2016302580101：2016302580101 郑晓欣
+    ·gongmm：2016302580099 王子昂
+    ·joanie10256：2016302580098 蒋颖
+
+*分工：
+    ·词法、语法分析代码：王子昂、郑晓欣、潘艳玥
+    ·IR文档：蒋颖、杨光媚
+
+*output.txt中对应的输入如下：
+
+FUNC main()
+{
+VAR i
+
+i := 0
+
+        WHILE 11 - i
+DO
+{
+PRINT "f( ", i, " ) = ", f(i),  "\n"
+i := i + 1
+}
+DONE
+}
+^Z
+
+FUNC f(n)
+{
+IF n
+THEN
+RETURN n * f(n - 1)
+ELSE
+RETURN 1
+FI
+}
+
