@@ -43,19 +43,24 @@ std::unique_ptr<StatAST> ParseStatement() {
 }
 //Assignment Statement
 std::unique_ptr<StatAST> ParseAssignStat() {
+	outputToTxt("assignment-stat\n");
 	std::string Name = IdentifierStr;
 	getNextToken();
 	if (CurTok != ASSIGN_SYMBOL)
 		return LogErrorS("Expected := in assignment statement");
 	getNextToken();
-	return llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
+	auto Result= llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
+	return std::move(Result);
 }
 //Return Statement
 std::unique_ptr<StatAST> ParseReturnStat() {
-	return llvm::make_unique<ReturnStatAST>(std::move(ParseExpression()));
+	outputToTxt("return-stat\n");
+	auto Result = llvm::make_unique<ReturnStatAST>(std::move(ParseExpression()));
+	return std::move(Result);
 }
 //Print Statement
 std::unique_ptr<StatAST> ParsePrintStat() {
+	outputToTxt("print-stat\n");
 	std::vector<std::unique_ptr<ExprAST>> Texts;
 	/*if (CurTok != TEXT)
 		return LogErrorS("Expected Text in Print statement");*/
@@ -76,10 +81,12 @@ std::unique_ptr<StatAST> ParsePrintStat() {
 			 Texts.push_back(std::move(ParseExpression()));
 		 }
 	}
-	return llvm::make_unique<PrintStatAST>(std::move(Texts));
+	auto Result = llvm::make_unique<PrintStatAST>(std::move(Texts));
+	return std::move(Result);
 }
 //If Statement
 std::unique_ptr<StatAST> ParseIfStat() {
+	outputToTxt("if-stat\n");
 	auto IfCondition = std::move(ParseExpression());
 	if (CurTok != THEN) {
 		return LogErrorS("Expected THEN in If statement");
@@ -103,6 +110,7 @@ std::unique_ptr<StatAST> ParseIfStat() {
 }
 //While Statement
 std::unique_ptr<StatAST> ParseWhileStat() {
+	outputToTxt("while-stat\n");
 	auto WhileCondition = std::move(ParseExpression());
 	if (CurTok != DO)
 		return LogErrorS("Expected DO in While statement");
@@ -115,6 +123,7 @@ std::unique_ptr<StatAST> ParseWhileStat() {
 }
 //Block Statement
 std::unique_ptr<StatAST> ParseBlockStat() {
+	outputToTxt("block-stat\n");
 	//std::vector<VariableExprAST>variables;
 	std::vector<std::unique_ptr<ExprAST>> variables;
 	std::vector<std::unique_ptr<StatAST>> statements;
