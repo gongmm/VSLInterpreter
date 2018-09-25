@@ -9,7 +9,7 @@
 //工具函数
 void print(std::string str) {//带indent输出
 	for (int i = 0; i < indent; i++) {
-		outputToTxt(" ");
+		outputToTxt("\t");
 	}
 	outputToTxt(str);
 }
@@ -44,6 +44,8 @@ std::unique_ptr<StatAST> ParseStatement() {
 		getNextToken();
 		return ParseBlockStat();
 	default:
+		if (CurTok == EOF)
+			return nullptr;
 		getNextToken();
 		return LogErrorS("unknown token when expecting an statement");
 	}
