@@ -54,6 +54,8 @@ extern std::map<char, int> BinopPrecedence;
 
 /// 输出至文件
 void outputToTxt(std::string str);
+/// 缩进指示
+extern int indent;
 
 extern std::unique_ptr<ExprAST> LogError(const char *Str);
 extern std::unique_ptr<PrototypeAST> LogErrorP(const char *Str);

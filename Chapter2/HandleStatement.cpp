@@ -6,6 +6,13 @@
 #pragma once
 #include"AST.h"
 #include"Global.h"
+//工具函数
+void print(std::string str) {//带indent输出
+	for (int i = 0; i < indent; i++) {
+		outputToTxt(" ");
+	}
+	outputToTxt(str);
+}
 //新添加新定义函数关于Statement
 //Statement
 std::unique_ptr<StatAST> ParseAssignStat();
@@ -43,19 +50,36 @@ std::unique_ptr<StatAST> ParseStatement() {
 }
 //Assignment Statement
 std::unique_ptr<StatAST> ParseAssignStat() {
+	int indentBefore=indent;
+	print("assignment-stat\n");
+	indent++;
+	print("VARIABLE");
 	std::string Name = IdentifierStr;
 	getNextToken();
+	outputToTxt(":=");
 	if (CurTok != ASSIGN_SYMBOL)
 		return LogErrorS("Expected := in assignment statement");
 	getNextToken();
-	return llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
+	outputToTxt("expression\n");
+	indent++;
+	auto Result= llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
+	indent =indentBefore;
+	return std::move(Result);
 }
 //Return Statement
 std::unique_ptr<StatAST> ParseReturnStat() {
-	return llvm::make_unique<ReturnStatAST>(std::move(ParseExpression()));
+	int indentBefore = indent;
+	print("return-stat\n");
+	indent++;
+	print("expression\n");
+	indent++;
+	auto Result = llvm::make_unique<ReturnStatAST>(std::move(ParseExpression()));
+	indent = indentBefore;
+	return std::move(Result);
 }
 //Print Statement
 std::unique_ptr<StatAST> ParsePrintStat() {
+	print("print-stat\n");
 	std::vector<std::unique_ptr<ExprAST>> Texts;
 	/*if (CurTok != TEXT)
 		return LogErrorS("Expected Text in Print statement");*/
@@ -76,16 +100,26 @@ std::unique_ptr<StatAST> ParsePrintStat() {
 			 Texts.push_back(std::move(ParseExpression()));
 		 }
 	}
-	return llvm::make_unique<PrintStatAST>(std::move(Texts));
+	auto Result = llvm::make_unique<PrintStatAST>(std::move(Texts));
+	return std::move(Result);
 }
 //If Statement
 std::unique_ptr<StatAST> ParseIfStat() {
+	int indentBefore = indent;
+	print("if-stat\n");
+	indent++;
+	print("ifCondition expression\n");
+	indent++;
 	auto IfCondition = std::move(ParseExpression());
+	indent--;
 	if (CurTok != THEN) {
 		return LogErrorS("Expected THEN in If statement");
 	}
 	getNextToken();
+	print("THEN statement\n");
+	indent++;
 	auto ThenStat = std::move(ParseStatement());
+	indent--;
 	if (CurTok != ELSE) {
 		if (CurTok != FI) {
 			return LogErrorS("Expected FI in If statement");
@@ -93,32 +127,47 @@ std::unique_ptr<StatAST> ParseIfStat() {
 		getNextToken();
 		return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat));
 	}
+	print("ELSE statement\n");
 	getNextToken();
+	indent++;
 	std::unique_ptr<StatAST>ElseStat = ParseStatement();
+	indent--;
 	if (CurTok != FI) {
 		return LogErrorS("Expected FI in If statement");
 	}
+	print("FI keyword");
+	indent = indentBefore;
 	getNextToken();
 	return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat), std::move(ElseStat));
 }
 //While Statement
 std::unique_ptr<StatAST> ParseWhileStat() {
+	print("while-stat\n");
 	auto WhileCondition = std::move(ParseExpression());
 	if (CurTok != DO)
 		return LogErrorS("Expected DO in While statement");
+	indent++;
+	print("DO statement\n");
 	getNextToken();
+	indent++;
 	auto DoStat = std::move(ParseStatement());
+	indent--;
 	if (CurTok != DONE)
 		return LogErrorS("Expected DONE in While statement");
+	print("DONE");
 	getNextToken();
 	return llvm::make_unique<WhileStatAST>(std::move(WhileCondition), std::move(DoStat));
 }
 //Block Statement
 std::unique_ptr<StatAST> ParseBlockStat() {
+	int indentBefore = indent;
+	print("block-stat\n");
+	indent++;
 	//std::vector<VariableExprAST>variables;
 	std::vector<std::unique_ptr<ExprAST>> variables;
 	std::vector<std::unique_ptr<StatAST>> statements;
 	while (CurTok == VAR){
+		print("declaration\n");
 		getNextToken();
 		do {
 			/*VariableExprAST* ptr = dynamic_cast<VariableExprAST*>(ParseIdentifierExpr().release());
@@ -133,13 +182,18 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 			getNextToken();
 		} while (CurTok == VARIABLE);
 	}
+	indent--;
+	print("statement-list\n");
 	do {
+		indent++;
 		if (auto stat = ParseStatement())
 			statements.push_back(std::move(stat));
+		indent--;
 		/*else
 			return nullptr;*/
 		//错返回空 要报错
 	} while (CurTok != '}');
+	indent = indentBefore;
 	getNextToken();
 	return  llvm::make_unique<BlockStatAST>(std::move(variables), std::move(statements));
 }
