@@ -23,7 +23,7 @@ public:
 ...
 ```
 
-​	Value是一个类，表示LLVM中的“静态单一分配（SSA）寄存器，它的值在相关指令执行时计算的。
+	Value是一个类，表示LLVM中的“静态单一分配（SSA）寄存器，它的值在相关指令执行时计算的。
 
 2. LogError方法，用于报告在代码生成期间发现的错误。
 
@@ -46,7 +46,7 @@ Value *ErrorV(const char *Str) { Error(Str); return 0; }
 
 在生成代码之前必须先设置好`Builder`对象，指明写入代码的位置。
 
-#### Expression Code Generation
+####Expression Code Generation
 
 1. 数值常量
 
@@ -110,8 +110,6 @@ LLVM指定fcmp指令始终返回一个比特的整数，把fcmp指令与uitofp�
 
 若使用sitofp指令，<'运算符将返回0.0或-1.0。
 
-
-
 4. 函数调用
 
 ```c
@@ -143,7 +141,7 @@ LLVM默认使用本机C调用约定，允许这些调用也调用标准库函数
 
 
 
-#### Function Code Generation
+####Function Code Generation
 
 1. 原型
 
