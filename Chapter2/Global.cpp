@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <stack>
 
 std::string IdentifierStr;
 double NumVal;
@@ -24,7 +23,6 @@ int indent = 0;
 /// 输出至文件
 static std::ofstream fout;
 static bool isFirstOpenFile = true;
-static std::stack<std::string> outputStack;
 void outputToTxt(std::string str) {
   if (isFirstOpenFile) {
     fout.open("output.txt", std::ios::trunc);
@@ -36,9 +34,19 @@ void outputToTxt(std::string str) {
   fout.close();
 }
 
+static std::ofstream errorFout;
+static bool isErrorFirstOpenFile = true;
 /// LogError* - These are little helper functions for error handling.
 std::unique_ptr<ExprAST> LogError(const char *Str) {
-   fprintf(stderr, "Error: %s\n", Str);
+  if (isErrorFirstOpenFile) {
+    errorFout.open("error.txt", std::ios::trunc);
+    isErrorFirstOpenFile = false;
+  } else
+    errorFout.open("error.txt", std::ios::app);
+  if (errorFout.is_open()) {
+    errorFout << Str;
+  }
+  fout.close();
   /*std::string str("Error: ");
   str.append(Str);
   outputToTxt(str);*/

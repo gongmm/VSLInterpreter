@@ -68,10 +68,10 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 
 	getNextToken(); // eat identifier.
 
-	if (CurTok != '(') // Simple variable ref.
+	if (CurTok != '('){ // Simple variable ref.
 		outputToTxt("varible-reference-expression");
 		return llvm::make_unique<VariableExprAST>(IdName);
-
+	}
 	// Call.
 	getNextToken(); // eat (
 	std::vector<std::unique_ptr<ExprAST>> Args;
