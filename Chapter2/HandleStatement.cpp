@@ -198,6 +198,11 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 	}
 	print("statement-list\n");
 	do {
+		if (CurTok == '}') {
+			indent = indentBefore;
+			getNextToken();
+			return LogErrorS("Expected statement in block statement");
+		}
 		indent++;
 		if (auto stat = ParseStatement())
 			statements.push_back(std::move(stat));
@@ -205,7 +210,7 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 		/*else
 			return nullptr;*/
 		//´í·µ»Ø¿Õ Òª±¨´í
-	} while (CurTok != '}');
+	} while (CurTok != '}'&&CurTok!=TOKEOF);
 	indent = indentBefore;
 	getNextToken();
 	return  llvm::make_unique<BlockStatAST>(std::move(variables), std::move(statements));

@@ -1,0 +1,52 @@
+FUNCTION
+	block-stat
+		declaration
+		varible-reference-expression
+		statement-list
+			assignment-stat
+				VARIABLE:=expression
+					number-expression
+					binary-expression
+			while-stat
+				do-condition
+					number-expression
+					binary-expression
+					varible-reference-expression
+				DO statement
+					block-stat
+						statement-list
+							print-stat
+							varible-reference-expression
+							binary-expression
+							varible-reference-expression
+							binary-expression
+							call-expression
+							binary-expression
+							assignment-stat
+								VARIABLE:=expression
+									varible-reference-expression
+									binary-expression
+									number-expression
+				DONE keyword
+FUNCTION
+	block-stat
+		statement-list
+			if-stat
+				ifCondition expression
+					varible-reference-expression
+					binary-expression
+				THEN statement
+					return-stat
+						expression
+							varible-reference-expression
+							binary-expression
+							varible-reference-expression
+							binary-expression
+							number-expression
+							call-expression
+				ELSE statement
+					return-stat
+						expression
+							number-expression
+							binary-expression
+				FI keyword

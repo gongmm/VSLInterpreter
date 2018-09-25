@@ -1,4 +1,4 @@
 BuildingAJIT
 include
 MCJIT
-*.txt
+CMakeLists.txt
