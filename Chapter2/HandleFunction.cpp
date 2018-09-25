@@ -51,7 +51,7 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
 void HandleDefinition() {
   if (ParseDefinition()) {
     //fprintf(stderr, "Parsed a function definition.\n");
-    outputToTxt("Parsed a function definition.");
+    outputToTxt("FUNCTION.");
   } else {
     // Skip token for error recovery.
     getNextToken();
