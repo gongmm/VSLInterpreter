@@ -46,7 +46,7 @@ std::unique_ptr<ExprAST> LogError(const char *Str) {
   if (errorFout.is_open()) {
     errorFout << Str;
   }
-  fout.close();
+  errorFout.close();
   /*std::string str("Error: ");
   str.append(Str);
   outputToTxt(str);*/
