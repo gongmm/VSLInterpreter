@@ -56,6 +56,6 @@ void HandleDefinition() {
     /*outputToTxt("FUNCTION.");*/
   } else {
     // Skip token for error recovery.
-    getNextToken();
+//    getNextToken();
   }
 }
