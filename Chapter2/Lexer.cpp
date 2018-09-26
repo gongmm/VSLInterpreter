@@ -59,10 +59,11 @@ int gettok() {
 	//识别注释
 	if (LastChar == '/') {
 		LastChar = getchar();
-		if (LastChar == '/')
-			while (LastChar != '\n')
-				LastChar = getchar();
-		LastChar = getchar();
+          if (LastChar == '/')
+            while (LastChar != '\n')
+              LastChar = getchar();
+          else
+            return '/';
 	}
 	//识别标识符
 	if (isalpha(LastChar)) {
