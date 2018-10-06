@@ -61,3 +61,12 @@ std::unique_ptr<StatAST> LogErrorS(const char *Str) {
   LogError(Str);
   return nullptr;
 }
+
+//===----------------------------------------------------------------------===//
+// Code Generation
+//===----------------------------------------------------------------------===//
+
+LLVMContext TheContext;
+//IRBuilder<> Builder(TheContext);
+std::unique_ptr<Module> TheModule;
+std::map<std::string, Value *> NamedValues;
