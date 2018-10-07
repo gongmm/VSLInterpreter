@@ -33,7 +33,9 @@ Value *VariableExprAST::codegen() {
 
 Value * TextExprAST::codegen()
 {
+	//return Constant::get(TheContext, StringRef(Text));
 	return nullptr;
+	
 }
 
 
