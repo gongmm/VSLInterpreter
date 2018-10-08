@@ -90,7 +90,7 @@ Function *PrototypeAST::codegen() {
 	// 寻找是否有已经存在的函数
 	Function *TheFunction = TheModule->getFunction(Name);
 
-	if (!TheFunction)
+	if (TheFunction)
 		return (Function*)LogErrorV("Prototype already exist.");
 
 	// Make the function type:  double(double,double) etc.
@@ -113,7 +113,7 @@ Function *PrototypeAST::codegen() {
 Function *FunctionAST::codegen() {
 	
 	
-	Function *TheFunction = TheFunction = Proto->codegen();
+	Function *TheFunction = Proto->codegen();
 
 	if (!TheFunction)
 		return nullptr;
