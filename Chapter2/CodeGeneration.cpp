@@ -87,13 +87,20 @@ Value *CallExprAST::codegen() {
 }
 
 Function *PrototypeAST::codegen() {
+	// 寻找是否有已经存在的函数
+	Function *TheFunction = TheModule->getFunction(Name);
+
+	if (!TheFunction->empty())
+		return (Function*)LogErrorV("Prototype already exist.");
+
 	// Make the function type:  double(double,double) etc.
 	std::vector<Type *> Doubles(Args.size(), Type::getDoubleTy(TheContext));
 	FunctionType *FT =
 		FunctionType::get(Type::getDoubleTy(TheContext), Doubles, false);
 
+	// create function
 	Function *F =
-		Function::Create(FT, Function::ExternalLinkage, Name, TheModule.get());
+		Function::Create(FT, Function::InternalLinkage, Name, TheModule.get());
 
 	// Set names for all arguments.
 	unsigned Idx = 0;
@@ -105,11 +112,8 @@ Function *PrototypeAST::codegen() {
 
 Function *FunctionAST::codegen() {
 	
-	// First, check for an existing function from a previous 'extern' declaration.
-	Function *TheFunction = TheModule->getFunction(Proto->getName());
-
-	if (!TheFunction)
-		TheFunction = Proto->codegen();
+	
+	Function *TheFunction = TheFunction = Proto->codegen();
 
 	if (!TheFunction)
 		return nullptr;
@@ -159,7 +163,8 @@ Value * AssignStatAST::codegen()
 
 Value * ReturnStatAST::codegen()
 {
-	return nullptr;
+	Value * val = Body->codegen();
+	return val;
 }
 
 Value * PrintStatAST::codegen()
