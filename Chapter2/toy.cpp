@@ -42,7 +42,7 @@ int main() {
   getNextToken();
 
   // Make the module, which holds all the code.
-  TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
+  // TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
 
   // Run the main "interpreter loop" now.
   MainLoop();

@@ -68,5 +68,5 @@ std::unique_ptr<StatAST> LogErrorS(const char *Str) {
 
 LLVMContext TheContext;
 //IRBuilder<> Builder(TheContext);
-std::unique_ptr<Module> TheModule;
+std::unique_ptr<Module> TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
 std::map<std::string, Value *> NamedValues;
