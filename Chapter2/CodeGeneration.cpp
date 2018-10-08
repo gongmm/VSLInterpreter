@@ -54,10 +54,12 @@ Value *BinaryExprAST::codegen() {
 		return Builder.CreateFSub(L, R, "subtmp");
 	case '*':
 		return Builder.CreateFMul(L, R, "multmp");
-	case '<':
-		L = Builder.CreateFCmpULT(L, R, "cmptmp");
-		// Convert bool 0/1 to double 0.0 or 1.0
-		return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
+	case '/':
+		return Builder.CreateFDiv(L, R, "divtmp");
+	//case '<':
+	//	L = Builder.CreateFCmpULT(L, R, "cmptmp");
+	//	// Convert bool 0/1 to double 0.0 or 1.0
+	//	return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
 	default:
 		return LogErrorV("invalid binary operator");
 	}
@@ -154,7 +156,54 @@ Value * PrintStatAST::codegen()
 
 Value * IfStatAST::codegen()
 {
-	return nullptr;
+	Value *CondV = IfCondition -> codegen();
+	if (!CondV)
+		return nullptr;
+
+	// Convert condition to a bool by comparing non-equal to 0.0.
+	CondV = Builder.CreateFCmpONE(
+		CondV, ConstantFP::get(TheContext, APFloat(0.0)), "ifcond");
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+	// Create blocks for the then and else cases.  Insert the 'then' block at the
+	// end of the function.
+	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else");
+	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
+
+	Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+
+	// Emit then value.
+	Builder.SetInsertPoint(ThenBB);
+
+	Value *ThenV = ThenStat -> codegen();
+	if (!ThenV)
+		return nullptr;
+
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	ThenBB = Builder.GetInsertBlock();
+
+	// Emit else block.
+	TheFunction->getBasicBlockList().push_back(ElseBB);
+	Builder.SetInsertPoint(ElseBB);
+
+	Value *ElseV = ElseStat -> codegen();
+	if (!ElseV)
+		return nullptr;
+
+	Builder.CreateBr(MergeBB);
+	// codegen of 'Else' can change the current block, update ElseBB for the PHI.
+	ElseBB = Builder.GetInsertBlock();
+
+	// Emit merge block.
+	TheFunction->getBasicBlockList().push_back(MergeBB);
+	Builder.SetInsertPoint(MergeBB);
+	PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+
+	PN->addIncoming(ThenV, ThenBB);
+	PN->addIncoming(ElseV, ElseBB);
+	return PN;
 }
 
 Value * WhileStatAST::codegen()
