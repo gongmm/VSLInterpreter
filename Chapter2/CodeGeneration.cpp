@@ -314,7 +314,41 @@ Value * WhileStatAST::codegen()
 
 Value * BlockStatAST::codegen()
 {
-	return nullptr;
+	// delcaration
+
+	unsigned start = NamedValues.size();
+	unsigned e = Variables.size();
+	unsigned end = start + e;
+	for (unsigned i = 0; i != e; ++i)
+	{
+	
+		llvm::Value *ret = Variables[i]->codegen();
+		
+		return ret;
+	}
+	
+
+	// statements
+	
+	Value *ret;
+	for (unsigned i = 0, e = Statements.size(); i != e; ++i) {
+		ret = Statements[i]->codegen();
+		
+	}
+
+
+	// clear variable
+	for (unsigned i = start; i != end; ++i)
+	{
+		/*std::unique_ptr<VariableExprAST> result = Variables[i];
+		NamedValues.erase();*/
+
+
+		return ret;
+	}
+
+
+	return ret;
 }
 
 Value * ContinueStatAST::codegen()
