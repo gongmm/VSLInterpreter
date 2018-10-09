@@ -9,8 +9,9 @@
 *                               *
 *********************************/
 //===----------------------------------------------------------------------===//
-	// Lexer
-	//===----------------------------------------------------------------------===//
+// Lexer
+//===----------------------------------------------------------------------===//
+
 extern std::string IdentifierStr;
 extern double NumVal;
 extern std::string Text;
@@ -68,4 +69,14 @@ extern std::unique_ptr<StatAST> ParseStatement();
 //statement函数内要用更改
 std::unique_ptr<ExprAST> ParseIdentifierExpr();
 extern void HandleDefinition();
+
+//===----------------------------------------------------------------------===//
+// Code Generation
+//===----------------------------------------------------------------------===//
+
+extern LLVMContext TheContext;
+extern std::unique_ptr<Module> TheModule;
+extern std::map<std::string, Value *> NamedValues;
+
+
 #endif // ! GLOBAL

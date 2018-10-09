@@ -51,9 +51,14 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
 }
 
 void HandleDefinition() {
-  if (ParseDefinition()) {
+  if (auto FnAST = ParseDefinition()) {
     //fprintf(stderr, "Parsed a function definition.\n");
     /*outputToTxt("FUNCTION.");*/
+	  if (auto *FnIR = FnAST->codegen()) {
+		  fprintf(stderr, "Read function definition:");
+		  FnIR->print(errs());
+		  fprintf(stderr, "\n");
+	  }
   } else {
     // Skip token for error recovery.
 //    getNextToken();
