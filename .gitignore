@@ -2,7 +2,6 @@ BuildingAJIT
 include
 MCJIT
 CMakeLists.txt
-Chapter2
 Chapter3
 Chapter4
 Chapter5
