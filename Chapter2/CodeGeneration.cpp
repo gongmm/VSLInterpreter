@@ -316,7 +316,7 @@ Value * BlockStatAST::codegen()
 {
 	// delcaration
 
-	unsigned start = NamedValues.size();
+	/*unsigned start = NamedValues.size();
 	unsigned e = Variables.size();
 	unsigned end = start + e;
 	for (unsigned i = 0; i != e; ++i)
@@ -341,14 +341,14 @@ Value * BlockStatAST::codegen()
 	for (unsigned i = start; i != end; ++i)
 	{
 		/*std::unique_ptr<VariableExprAST> result = Variables[i];
-		NamedValues.erase();*/
+		NamedValues.erase();
 
 
 		return ret;
 	}
+	*/
 
-
-	return ret;
+	return nullptr;
 }
 
 Value * ContinueStatAST::codegen()
