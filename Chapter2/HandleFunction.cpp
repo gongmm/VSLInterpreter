@@ -58,6 +58,9 @@ void HandleDefinition() {
 		  fprintf(stderr, "Read function definition:");
 		  FnIR->print(errs());
 		  fprintf(stderr, "\n");
+		  //将函数生成code后初始化Module和PassManager
+		  TheJIT->addModule(std::move(TheModule));
+		  InitializeModuleAndPassManager();
 	  }
   } else {
     // Skip token for error recovery.

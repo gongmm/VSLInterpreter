@@ -28,6 +28,10 @@ void MainLoop() {
 //===----------------------------------------------------------------------===//
 
 int main() {
+	//初始化
+	InitializeNativeTarget();
+	InitializeNativeTargetAsmPrinter();
+	InitializeNativeTargetAsmParser();
   // Install standard binary operators.
   // 1 is lowest precedence.
   BinopPrecedence['<'] = 10;
@@ -40,7 +44,10 @@ int main() {
   // Prime the first token.
   fprintf(stderr, "ready> ");
   getNextToken();
+  //初始化TheJIT和优化器
+  TheJIT = llvm::make_unique<KaleidoscopeJIT>();
 
+  InitializeModuleAndPassManager();
   // Make the module, which holds all the code.
   // TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
 

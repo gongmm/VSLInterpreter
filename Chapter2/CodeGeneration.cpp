@@ -68,8 +68,13 @@ Value *BinaryExprAST::codegen() {
 }
 
 Value *CallExprAST::codegen() {
+	//修改前
+	/*// Look up the name in the global module table.
+	Function *CalleeF = TheModule->getFunction(Callee);*/
+	//修改后
 	// Look up the name in the global module table.
-	Function *CalleeF = TheModule->getFunction(Callee);
+	Function *CalleeF = getFunction(Callee);
+
 	if (!CalleeF)
 		return LogErrorV("Unknown function referenced");
 
@@ -112,12 +117,17 @@ Function *PrototypeAST::codegen() {
 }
 
 Function *FunctionAST::codegen() {
-	
-	
-	Function *TheFunction = Proto->codegen();
-
+	//添加对全局函数原型表FunctionProtos的修改，修改getFunction的方式
+	auto &P = *Proto;
+	FunctionProtos[Proto->getName()] = std::move(Proto);
+	Function *TheFunction = getFunction(P.getName());
 	if (!TheFunction)
 		return nullptr;
+//以前的版本	
+/*	Function *TheFunction = Proto->codegen();
+
+	if (!TheFunction)
+		return nullptr;*/
 
 	// Create a new basic block to start insertion into.
 	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
@@ -134,6 +144,9 @@ Function *FunctionAST::codegen() {
 
 		// Validate the generated code, checking for consistency.
 		verifyFunction(*TheFunction);
+
+		// Run the optimizer on the function.
+		TheFPM->run(*TheFunction);
 
 		return TheFunction;
 	}
