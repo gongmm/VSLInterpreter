@@ -1,5 +1,6 @@
 #pragma once
 #include "Global.h"
+#include "llvm/IR/ValueSymbolTable.h"
 
 
 using namespace llvm;
@@ -146,18 +147,33 @@ Function *FunctionAST::codegen() {
 
 Value * AssignStatAST::codegen()
 {
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	// Create a new basic block to start insertion into.
+	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
+	ValueSymbolTable* st = BB->getValueSymbolTable();
 
+	Value* v = st->lookup(Name);
+	if (v == NULL || v->hasName() == false) {
+		errs() << "undeclared variable " << Name << "\n";
+		return NULL;
+	}
+	
 	Value * result = this->Val->codegen();
 
+	
+
+	Value* load = new LoadInst(result, "", false, BB);
+	return load;
+	
+
 	// 在 NamedValues map 中寻找该变量.
-	Value *V = NamedValues[Name];
-	if (!V)
-		return LogErrorV("Unknown variable name");
+	//Value *V = NamedValues[Name];
+	//if (!V)
+		//return LogErrorV("Unknown variable name");
 	// 赋值
-	NamedValues[Name] = result;
+	//NamedValues[Name] = result;
 
-
-	return Builder.CreateStore(result, TheModule->getGlobalVariable(this->Name));
+	//return Builder.CreateStore(result, TheModule->getGlobalVariable(this->Name));
 	
 }
 
@@ -315,20 +331,29 @@ Value * WhileStatAST::codegen()
 Value * BlockStatAST::codegen()
 {
 	// delcaration
-
-	/*unsigned start = NamedValues.size();
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	// Create a new basic block to start insertion into.
+	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
+	ValueSymbolTable* st = BB->getValueSymbolTable();
+	Builder.SetInsertPoint(BB);
+	//locals.insert(std::make_pair("",0));
+	//Value* v = st->lookup(Name);
+	
+	unsigned start = NamedValues.size();
 	unsigned e = Variables.size();
 	unsigned end = start + e;
 	for (unsigned i = 0; i != e; ++i)
 	{
 	
-		llvm::Value *ret = Variables[i]->codegen();
+		//for (auto &Arg : Variables)
+			//NamedValues[Arg.getName()] = &Arg;
+		//llvm::Value *ret = Variables[i]->codegen();
+		//NamedValues.put(Variables.,0);
 		
-		return ret;
 	}
 	
 
-	// statements
+	// statements code generation
 	
 	Value *ret;
 	for (unsigned i = 0, e = Statements.size(); i != e; ++i) {
@@ -340,13 +365,12 @@ Value * BlockStatAST::codegen()
 	// clear variable
 	for (unsigned i = start; i != end; ++i)
 	{
-		/*std::unique_ptr<VariableExprAST> result = Variables[i];
-		NamedValues.erase();
+		//std::unique_ptr<VariableExprAST> result = Variables[i];
+		//NamedValues.erase();
 
 
-		return ret;
 	}
-	*/
+	
 
 	return nullptr;
 }
