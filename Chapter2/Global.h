@@ -1,7 +1,12 @@
 #ifndef  GLOBAL
 #define GLOBAL
 #include "AST.h"
+#include "../include/KaleidoscopeJIT.h"
 #include <map>
+
+using namespace llvm;
+using namespace llvm::orc;
+
 /********************************
 *                               *
 * 存放全局使用的变量            *
@@ -77,10 +82,19 @@ extern void HandleDefinition();
 extern LLVMContext TheContext;
 extern std::unique_ptr<Module> TheModule;
 extern std::map<std::string, Value *> NamedValues;
+
+
+
+
+
+//===----------------------------------------------------------------------===//
+// JIT & Optimizer Support
+//===----------------------------------------------------------------------===//
 extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 //优化代码
 void InitializeModuleAndPassManager();
 Function *getFunction(std::string Name);
+
 #endif // ! GLOBAL
