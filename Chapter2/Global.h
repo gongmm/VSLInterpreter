@@ -77,6 +77,10 @@ extern void HandleDefinition();
 extern LLVMContext TheContext;
 extern std::unique_ptr<Module> TheModule;
 extern std::map<std::string, Value *> NamedValues;
-
-
+extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
+extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+//ÓÅ»¯´úÂë
+void InitializeModuleAndPassManager();
+Function *getFunction(std::string Name);
 #endif // ! GLOBAL

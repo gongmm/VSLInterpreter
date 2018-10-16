@@ -1,7 +1,8 @@
 #pragma once
 #include "Global.h"
-#include <fstream>
-#include <iostream>
+//编译出错暂时注释
+//#include <fstream>
+//#include <iostream>
 #include <string>
 
 std::string IdentifierStr;
@@ -21,24 +22,27 @@ std::map<char, int> BinopPrecedence;
 int indent = 0;
 
 /// 输出至文件
-static std::ofstream fout;
+//编译出错暂时注释
+//static std::ofstream fout;
 static bool isFirstOpenFile = true;
 void outputToTxt(std::string str) {
-  if (isFirstOpenFile) {
+	//以下为编译不允许暂时注释
+ /* if (isFirstOpenFile) {
     fout.open("output.txt", std::ios::trunc);
 	isFirstOpenFile = false;
   }else fout.open("output.txt", std::ios::app);
   if (fout.is_open()) {
     fout << str;
   }
-  fout.close();
+  fout.close();*/
 }
-
-static std::ofstream errorFout;
+//编译出错暂时注释
+//static std::ofstream errorFout;
 static bool isErrorFirstOpenFile = true;
 /// LogError* - These are little helper functions for error handling.
 std::unique_ptr<ExprAST> LogError(const char *Str) {
-  if (isErrorFirstOpenFile) {
+	//以下为编译不允许暂时注释
+ /* if (isErrorFirstOpenFile) {
     errorFout.open("error.txt", std::ios::trunc);
     isErrorFirstOpenFile = false;
   } else
@@ -46,7 +50,7 @@ std::unique_ptr<ExprAST> LogError(const char *Str) {
   if (errorFout.is_open()) {
     errorFout << Str;
   }
-  errorFout.close();
+  errorFout.close();*/
   /*std::string str("Error: ");
   str.append(Str);
   outputToTxt(str);*/
@@ -70,3 +74,6 @@ LLVMContext TheContext;
 //IRBuilder<> Builder(TheContext);
 std::unique_ptr<Module> TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
 std::map<std::string, Value *> NamedValues;
+std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+std::unique_ptr<KaleidoscopeJIT> TheJIT;
+std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
