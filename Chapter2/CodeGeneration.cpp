@@ -264,12 +264,12 @@ Value * IfStatAST::codegen()
 Value * WhileStatAST::codegen()
 {
 	//处理循环控制条件
-	Value *EndCond = WhileCondition->codegen();
-	if (!EndCond)
+	Value *StartVal = WhileCondition->codegen();
+	if (!StartVal)
 		return nullptr;
 
 	// 将该条件的表达式的值与零进行比较, 从而将真值作为1位 (bool) 值获取。以确定循环是否应该退出
-	EndCond = Builder.CreateFCmpONE(EndCond, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+	StartVal = Builder.CreateFCmpONE(StartVal, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 
 	// 获取正在构建的当前Function对象
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
@@ -286,13 +286,13 @@ Value * WhileStatAST::codegen()
 	// 创建PHI节点
 	PHINode *Variable = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "loopend");
 	// 将初始的表达式的值传入PHI节点，目前Preheader还不存在
-	Variable->addIncoming(EndCond, PreheaderBB);
+	Variable->addIncoming(StartVal, PreheaderBB);
 	// 生成循环体Statement部分的代码
 	if (!DoStat->codegen())
 		return nullptr;
 
 	//处理循环控制条件
-	EndCond = WhileCondition->codegen();
+	Value *EndCond = WhileCondition->codegen();
 	if (!EndCond)
 		return nullptr;
 
