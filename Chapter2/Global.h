@@ -37,7 +37,9 @@ enum Token {
 	DO = -14,
 	DONE = -15,
 	VAR = -16,
-	TOKEOF = -17
+	TOKEOF = -17,
+	BINARY = -18,
+	UNARY = -19
 };
 
 extern bool recWhitespace(int LastChar);
