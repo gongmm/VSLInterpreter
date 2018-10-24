@@ -120,6 +120,21 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 
 }
 
+/// 单目运算符
+std::unique_ptr<ExprAST> ParseUnary() {
+  // 如果不含有单目操作符，将其按普通的项来处理
+  if (!isascii(CurTok) || CurTok == '(' || CurTok == ',')
+    return ParsePrimary();
+
+  //如果含有单目操作符，取出操作符，剩下的按可能为含有单目操作符的项递归处理
+  int Opc = CurTok;
+  getNextToken();
+  if (auto Operand = ParseUnary())
+    return llvm::make_unique<UnaryExprAST>(Opc, std::move(Operand));
+  return nullptr;
+}
+
+
 /// binoprhs
 ///   ::= ('+' primary)*
 std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
@@ -138,7 +153,8 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
 		getNextToken(); // eat binop
 
 		// Parse the primary expression after the binary operator.
-		auto RHS = ParsePrimary();
+		//auto RHS = ParsePrimary();
+        auto RHS = ParseUnary();
 		if (!RHS)
 			return nullptr;
 
@@ -157,11 +173,13 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
 	}
 }
 
+
 /// expression
 ///   ::= primary binoprhs
 ///
 std::unique_ptr<ExprAST> ParseExpression() {
-	auto LHS = ParsePrimary();
+	//auto LHS = ParsePrimary();
+	auto LHS = ParseUnary();
 	if (!LHS)
 		return nullptr;
 	print("binary-expression\n");

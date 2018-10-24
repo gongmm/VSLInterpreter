@@ -40,8 +40,19 @@ Value * TextExprAST::codegen()
 	
 }
 
+Value *UnaryExprAST::codegen() {
+  Value *OperandV = Operand->codegen();
+  if (!OperandV)
+    return nullptr;
 
+  Function *F = getFunction(std::string("unary") + Opcode);
+  if (!F)
+    return LogErrorV("Unknown unary operator");
 
+  return Builder.CreateCall(
+      F, OperandV,
+      "unop"); //调用操作符对应函数，返回函数处理过的数值，完成单目操作符对表达式的运算
+}
 
 Value *BinaryExprAST::codegen() {
 	Value *L = LHS->codegen();
@@ -63,8 +74,17 @@ Value *BinaryExprAST::codegen() {
 	//	// Convert bool 0/1 to double 0.0 or 1.0
 	//	return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
 	default:
-		return LogErrorV("invalid binary operator");
+		//return LogErrorV("invalid binary operator");
+        //若为新增操作符，跳出到下面执行
+		break;
 	}
+	// 跳转并执行新增操作符对应的函数
+	Function *F = getFunction(std::string("binary") + Op);
+    assert(F && "binary operator not found!");
+
+    Value *Ops[2] = {L, R};
+    // 调用对应函数
+    return Builder.CreateCall(F, Ops, "binop");
 }
 
 Value *CallExprAST::codegen() {
@@ -123,7 +143,11 @@ Function *FunctionAST::codegen() {
 	Function *TheFunction = getFunction(P.getName());
 	if (!TheFunction)
 		return nullptr;
-//以前的版本	
+
+	if (P.isBinaryOp()) // 如果是操作符，将操作符及其优先级添加到优先级表中
+          BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence();
+
+    //以前的版本	
 /*	Function *TheFunction = Proto->codegen();
 
 	if (!TheFunction)
