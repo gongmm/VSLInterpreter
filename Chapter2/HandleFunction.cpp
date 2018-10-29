@@ -61,6 +61,10 @@ void HandleDefinition() {
 		  //将函数生成code后初始化Module和PassManager
 		  TheJIT->addModule(std::move(TheModule));
 		  InitializeModuleAndPassManager();
+		  if (hasMainFunction&&MainLackOfProtos.size() == 0) {
+			  processMain();
+			  hasMainFunction = false;
+		  }
 	  }
   } else {
     // Skip token for error recovery.

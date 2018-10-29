@@ -19,6 +19,11 @@ Value *LogErrorV(const char *Str) {
 	return nullptr;
 }
 
+Function *LogErrorF(const char *Str) {
+	LogError(Str);
+	return nullptr;
+}
+
 Value *NumberExprAST::codegen() {
 	//return ConstantInt::get(Builder.getInt32Ty(), this->Val, true);
 	return ConstantFP::get(TheContext, APFloat(Val));
@@ -74,7 +79,16 @@ Value *CallExprAST::codegen() {
 	//修改后
 	// Look up the name in the global module table.
 	Function *CalleeF = getFunction(Callee);
-
+	if (isMain&&CalleeF==nullptr) {
+		std::vector<std::string> ArgNames;
+		//暂时存储名称，名称名为错误值，到真正遇到函数时再加
+		for (int i = 0; i < Args.size();i++) {
+			ArgNames.push_back("temp"+i);
+		}
+		MainLackOfProtos[Callee]= llvm::make_unique<PrototypeAST>(Callee, std::move(ArgNames));
+		//存在问题：若是下次在取该值名称不一致怎么办！！！
+		CalleeF = getLackFunction(Callee);
+	}
 	if (!CalleeF)
 		return LogErrorV("Unknown function referenced");
 
@@ -119,10 +133,39 @@ Function *PrototypeAST::codegen() {
 Function *FunctionAST::codegen() {
 	//添加对全局函数原型表FunctionProtos的修改，修改getFunction的方式
 	auto &P = *Proto;
-	FunctionProtos[Proto->getName()] = std::move(Proto);
-	Function *TheFunction = getFunction(P.getName());
-	if (!TheFunction)
-		return nullptr;
+	//添加关于main的逻辑-------------------------------------------
+	if (P.getName() == "main")
+		isMain = true;
+	//先检查是否已经出现了Main函数
+	Function *TheFunction;
+	std::unique_ptr<PrototypeAST> temp;
+	if (hasMainFunction) {
+		temp = std::move(MainLackOfProtos[Proto->getName()]);
+	}
+	if (hasMainFunction&&temp != nullptr) {
+		auto& args = temp->getArgs();
+		auto& Args = P.getArgs();
+		if (args.size() != Args.size()) {
+			//参数不一致，报错返回
+			return LogErrorF("main函数调用函数参数不一致");
+		}
+		P.setArgs(args);
+		FunctionProtos[Proto->getName()] = std::move(temp);
+		MainLackOfProtos.erase(Proto->getName());
+		TheFunction = getFunction(P.getName());
+		if (!TheFunction)
+			return nullptr;
+		unsigned Idx = 0;
+		for (auto &Arg : TheFunction->args())
+			Arg.setName(Args[Idx++]);
+	}
+	//添加关于main的逻辑-------------------------------------------
+	else {
+		FunctionProtos[Proto->getName()] = std::move(Proto);
+		TheFunction = getFunction(P.getName());
+		if (!TheFunction)
+			return nullptr;
+	}
 //以前的版本	
 /*	Function *TheFunction = Proto->codegen();
 
@@ -147,6 +190,12 @@ Function *FunctionAST::codegen() {
 
 		// Run the optimizer on the function.
 		TheFPM->run(*TheFunction);
+
+		//更新isMain值
+		if (P.getName() == "main") {
+			isMain = false;
+			hasMainFunction = true;
+		}
 
 		return TheFunction;
 	}

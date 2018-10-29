@@ -12,6 +12,8 @@ void MainLoop() {
     /*fprintf(stderr, "ready> ");*/
     switch (CurTok) {
     case TOKEOF:
+		if (hasMainFunction)
+			processMain();
       return;
     case FUNC:
       HandleDefinition();

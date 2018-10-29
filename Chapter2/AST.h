@@ -131,7 +131,11 @@ public:
   Function *codegen();
 
   const std::string &getName() const { return Name; }
-
+   std::vector<std::string> getArgs() const { return Args; }
+   void setArgs(std::vector<std::string> args) {
+	   std::vector<std::string> V(args);
+	   Args = std::move(V);
+   }
   
 };
 class StatAST;
