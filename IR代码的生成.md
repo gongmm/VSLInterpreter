@@ -1,6 +1,6 @@
-# Generate LLVM IR
+# 中间代码生成
 
-#### Code Generation Setup
+### 代码生成的准备
 
 1. 在每个AST类中定义虚拟代码生成（codegen）方法，用于输出该AST节点的IR及其依赖的所有内容，并返回一个LLVM Value对象。
 
@@ -23,32 +23,32 @@ public:
 ...
 ```
 
-	Value是一个类，表示LLVM中的“静态单一分配（SSA）寄存器，它的值在相关指令执行时计算的。
+* Value是一个类，表示LLVM中的“静态单一分配（SSA）寄存器，它的值在相关指令执行时计算的，并且在指令重新执行之前它不会获得新值。SSA值是没有办法“改变”的。
 
 2. LogError方法，用于报告在代码生成期间发现的错误。
 
 ```c
-static LLVMContext TheContext;
 //静态变量将在代码生成期间使用。TheContext是一个不透明的对象，拥有许多核心LLVM数据结构，例如类型和常量值表，用一个实例传递到需要它的API中。
+static LLVMContext TheContext;
 
+// Builder是一个辅助对象，用来生成LLVM指令。Builder能够监测插入指令的当前位置，并具有创建新指令的方法。
 static IRBuilder<> Builder(TheContext);
-// IRBuilder类模板的实例跟踪插入指令的当前位置，并具有创建新指令的方法。
 
+//包含函数和全局变量的LLVM结构。它是LLVM IR用于包含代码的顶级结构。它将拥有我们生成的所有中间代码的内存，这就是codegen（）方法返回未加工的Value*而不是unique_ptr 的原因。
 static std::unique_ptr<Module> TheModule;
-//一个包含函数和全局变量的LLVM构造。一般，它是LLVM IR用于包含代码的顶级结构。它将拥有我们生成的所有IR的内存，这就是codegen（）方法返回Value*而不是unique_ptr 的原因。
 
-static std::map<std::string, Value *> NamedValues;
 //记录定义于当前作用域内的变量及与之相对应的LLVM表示(相当于符号表) 
 //如函数的参数
+static std::map<std::string, Value *> NamedValues;
 
 Value *ErrorV(const char *Str) { Error(Str); return 0; }
 ```
 
 在生成代码之前必须先设置好`Builder`对象，指明写入代码的位置。
 
-#### Expression Code Generation
+### 表达式代码生成
 
-1. 数值常量
+#### 数值常量 ####
 
 ```c
 Value *NumberExprAST::Codegen() {
@@ -57,11 +57,12 @@ Value *NumberExprAST::Codegen() {
 }
 ```
 
-在LLVM IR中，数字常量用ConstantFP类表示，它在内部保存APFloat中的数值。
+* 数字常量用`ConstantFP`类表示，它在内部保存`APFloat`中的数值。
+* `APFloat`可以放置任意精度的浮点常数
 
-在LLVM IR中，常量都是唯一的并且共享。API使用“foo :: get(...)”而不是“new foo(...)”或“foo :: Create(...)”。
+* 常量都是唯一的并且共享。API使用`foo :: get(...)`而不是`new foo(...)`或`foo :: Create(...)`
 
-2. 变量
+#### 变量 ####
 
 ```c
 Value *VariableExprAST::codegen() {
@@ -71,7 +72,7 @@ Value *VariableExprAST::codegen() {
 }
 ```
 
-3. 二元运算
+#### 二元运算 ####
 
 ```c
 Value *BinaryExprAST::Codegen() {
@@ -102,15 +103,15 @@ Value *BinaryExprAST::Codegen() {
 }
 ```
 
-IRBuilder知道在哪里插入新创建的指令，我们所要做的就是指定要创建的指令（例如使用CreateFAdd），使用哪些操作数（此处为L和R），并可选择为生成的指令提供名称。
+* `IRBuilder`知道在哪里插入新创建的指令，我们所要做的就是指定要创建的指令（例如使用`CreateFAdd`），使用哪些操作数（此处为L和R），并且我们可以选择为生成的指令起名。这个名字只是一个提示，是可选的，只是让我们阅读中间代码更方便。
 
-LLVM指令受严格规则的约束，例如，add指令的Left和Right运算符必须具有相同的类型，add的结果类型必须与操作数类型匹配。
+* LLVM指令受严格规则的约束，例如，add指令的Left和Right运算符必须具有相同的类型，add的结果类型必须与操作数类型匹配。
 
-LLVM指定fcmp指令始终返回一个比特的整数，把fcmp指令与uitofp指令结合起来，将输入视为无符号值将其输入整数转换为浮点值。
+* `fcmp`指令始终返回 1 bit 的整数，把`fcmp`指令与`uitofp`指令结合起来，将输入视为无符号值将其输入整数转换为浮点值。
 
-若使用sitofp指令，<'运算符将返回0.0或-1.0。
+* 若使用`sitofp`指令，$<$ 运算符将返回0.0或-1.0。
 
-4. 函数调用
+#### 函数调用 ####
 
 ```c
 Value *CallExprAST::codegen() {
@@ -135,20 +136,20 @@ Value *CallExprAST::codegen() {
 }
 ```
 
-LLVM Module是容纳即时编译的函数的容器，通过为每个函数指定与用户指定的名称相同的名称，我们可以使用LLVM symbol table来解析我们的函数名称。
+* Module是容纳即时编译的函数的容器，通过为每个函数指定与用户指定的名称相同的名称，我们可以使用LLVM symbol table来解析我们的函数名称。
 
-LLVM默认使用本机C调用约定，允许这些调用也调用标准库函数，如“sin”和“cos”，无需额外的工作。
+* LLVM默认使用原生的C调用惯例，允许调用标准库函数，如“sin”和“cos”，而不需要额外的工作。
 
-#### Function Code Generation
+### 函数代码生成
 
-1. 原型
+#### 原型 ####
 
 ```c
 Function *PrototypeAST::Codegen() {
   // 创建函数类型:  double(double,double) 等.
   std::vector<Type*> Doubles(Args.size(),
                              Type::getDoubleTy(getGlobalContext()));
-  // 创建出一个参数个数不可变（false指定）的函数类型
+  // 创建出一个参数个数不可变（false指定），放回一个double的函数类型
   FunctionType *FT = FunctionType::get(Type::getDoubleTy(getGlobalContext()),
                                        Doubles, false);
   // 创建与该函数原型相对应的IR函数，包括类型、链接方式和函数名等信息。
@@ -157,7 +158,8 @@ Function *PrototypeAST::Codegen() {
   // Name 是用户定义的，在“TheModule” 符号表中注册
   Function *F = Function::Create(FT, Function::ExternalLinkage, Name, TheModule);
   
-  // 根据原型中的名字，为函数参数设置名字
+  // 根据原型中的名字，为函数参数设置名字，并不是必要的
+  // 这样做，允许后续代码直接引用其名称的参数，而不必在Prototype AST中查找它们
   unsigned Idx = 0;
   for (auto &Arg : F->args())
     Arg.setName(Args[Idx++]);
@@ -165,13 +167,10 @@ Function *PrototypeAST::Codegen() {
 }
 ```
 
-此函数返回“Function”而不是“Value”，因为“函数原型”描述的是函数的对外接口。
+* Prototype既用于函数体，也用于外部函数声明，但在VSL中不支持外部函数声明
+* 此函数返回“Function”而不是“Value”，因为“函数原型”描述的是函数的对外接口，而不是表达式计算出的值
 
-
-
-2. 函数定义
-
-对于函数定义，我们需要codegen并附加一个函数体。
+#### 函数定义 ####
 
 ```c
 Function *FunctionAST::codegen() {
@@ -189,26 +188,27 @@ Function *FunctionAST::codegen() {
     return (Function*)ErrorV("Function cannot be redefined.");
 ```
 
-建立Builder
+**建立Builder**
 
 ```c
-// 创建一个新的名为“entry”的基本块。
+// 创建一个新的名为“entry”的基本块，插入到TheFunction
 BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
 //将新指令插入到新基本块的末尾
 Builder.SetInsertPoint(BB);
 
-// 在NamedValues map中记录函数参数。
+// 在NamedValues map中记录函数参数，以便它们可以被VariableExprAST节点访问
 NamedValues.clear();
 for (auto &Arg : TheFunction->args())
   NamedValues[Arg.getName()] = &Arg;
 ```
 
-LLVM中的基本块是定义控制流图的函数的重要部分。
+* LLVM中的基本块是定义控制流图的函数的重要部分。
 
 ```c
+//设置了插入点并填充了NamedValues后，调用codegen()方法来获取函数的根表达式
 if (Value *RetVal = Body->codegen()) {
   
-    // 创建一个LLVM ret指令，完成该函数。
+  // 创建一个LLVM ret指令，完成该函数。
   Builder.CreateRet(RetVal);
 
   // 验证生成的代码，检查一致性。
@@ -218,8 +218,6 @@ if (Value *RetVal = Body->codegen()) {
 }
 ```
 
-设置了插入点并填充了NamedValues后，调用codegen()方法来获取函数的根表达式。
-
 ```c
  // 读取体时出错，删除函数。
   TheFunction->eraseFromParent();
@@ -227,7 +225,7 @@ if (Value *RetVal = Body->codegen()) {
 }
 ```
 
-使用eraseFromParent方法来允许用户重新定义之前错误输入的函数：如果我们没有删除它，它将存在于带有正文的符号表中，从而阻止将来重新定义。
+* 使用eraseFromParent方法来允许用户重新定义之前错误输入的函数：如果我们没有删除它，它将存在于带有正文的符号表中，从而阻止将来重新定义。
 
 ```c
 ready> 4+5;

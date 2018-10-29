@@ -1,25 +1,5 @@
 #pragma once
-/*#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include <algorithm>
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>*/
-
-//修改
+#pragma once
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -34,6 +14,7 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "../include/KaleidoscopeJIT.h"
@@ -96,6 +77,18 @@ public:
   Value *codegen() override;
 };
 
+/// UnaryExprAST - Expression class for a unary operator.
+class UnaryExprAST : public ExprAST {
+  char Opcode;                      // 存储操作符
+  std::unique_ptr<ExprAST> Operand; //存储操作符对应处理的数
+
+public:
+  UnaryExprAST(char Opcode, std::unique_ptr<ExprAST> Operand)
+      : Opcode(Opcode), Operand(std::move(Operand)) {}
+
+  Value *codegen() override;
+};
+
 /// CallExprAST - Expression class for function calls.
 class CallExprAST : public ExprAST {
   std::string Callee;
@@ -123,10 +116,12 @@ public:
 class PrototypeAST {
   std::string Name;
   std::vector<std::string> Args;
+  bool IsOperator; //是否是一个操作符
+  unsigned Precedence; //当该原型为一个双目操作符时，该属性存储其优先级
 
 public:
-  PrototypeAST(const std::string &Name, std::vector<std::string> Args)
-      : Name(Name), Args(std::move(Args)) {}
+  PrototypeAST(const std::string &Name, std::vector<std::string> Args,bool IsOperator=false,unsigned Precedence = 0)
+      : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence) {}
 
   Function *codegen();
 
@@ -136,6 +131,21 @@ public:
 	   std::vector<std::string> V(args);
 	   Args = std::move(V);
    }
+
+  bool isUnaryOp() const {
+    return IsOperator && Args.size() == 1;
+  } //判定是否为单目操作符
+  bool isBinaryOp() const {
+    return IsOperator && Args.size() == 2;
+  } //判断是否为双目操作符
+
+  char getOperatorName() const { //若为操作符函数获得操作符的字符
+    assert(isUnaryOp() || isBinaryOp());
+    return Name[Name.size() - 1];
+  }
+
+  unsigned getBinaryPrecedence() const { return Precedence; }
+
   
 };
 class StatAST;

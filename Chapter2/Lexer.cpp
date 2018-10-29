@@ -44,6 +44,10 @@ int recKeyword() {
 		return DONE;
 	else if (IdentifierStr == "VAR")
 		return VAR;
+	else if (IdentifierStr == "unary")
+		return UNARY;
+    else if (IdentifierStr == "binary")
+		return BINARY;
 	return Token();
 }
 /// gettok - Return the next token from standard input.
