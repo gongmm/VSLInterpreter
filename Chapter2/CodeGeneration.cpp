@@ -306,32 +306,31 @@ Value * IfStatAST::codegen()
 	Builder.CreateBr(MergeBB);
 	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
 	ThenBB = Builder.GetInsertBlock();
-
-	PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
-
-	if (!ElseStat) {
-		// Emit else block.
-		TheFunction->getBasicBlockList().push_back(ElseBB);
-		Builder.SetInsertPoint(ElseBB);
-
-		Value *ElseV = ElseStat->codegen();
-		if (!ElseV)
-			return nullptr;
-
-		Builder.CreateBr(MergeBB);
-		// codegen of 'Else' can change the current block, update ElseBB for the PHI.
-		ElseBB = Builder.GetInsertBlock();
-
-		PN->addIncoming(ElseV, ElseBB);
-	}
-	
-
-	// Emit merge block.
-	TheFunction->getBasicBlockList().push_back(MergeBB);
-	Builder.SetInsertPoint(MergeBB);
-	
-
-	PN->addIncoming(ThenV, ThenBB);
+    
+    if (ElseStat) {
+        // Emit else block.
+        TheFunction->getBasicBlockList().push_back(ElseBB);
+        Builder.SetInsertPoint(ElseBB);
+        
+        Value *ElseV = ElseStat->codegen();
+        if (!ElseV)
+            return nullptr;
+        
+        Builder.CreateBr(MergeBB);
+        // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+        ElseBB = Builder.GetInsertBlock();
+        
+    }
+    
+    // Emit merge block.
+    TheFunction->getBasicBlockList().push_back(MergeBB);
+    Builder.SetInsertPoint(MergeBB);
+    PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+    PN->addIncoming(ThenV, ThenBB);
+    if (ElseStat){
+        PN->addIncoming(ElseV, ElseBB);
+    }
+    
 	
 	return PN;
 }
