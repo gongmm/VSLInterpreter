@@ -98,5 +98,10 @@ extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 //优化代码
 void InitializeModuleAndPassManager();
 Function *getFunction(std::string Name);
-
+//添加支持main的变量
+extern bool isMain;
+extern std::map<std::string, std::unique_ptr<PrototypeAST>> MainLackOfProtos;
+extern bool hasMainFunction;
+Function *getLackFunction(std::string Name);
+extern void processMain();
 #endif // ! GLOBAL

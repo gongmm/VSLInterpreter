@@ -1,5 +1,6 @@
 #pragma once
 #include "Global.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 void InitializeModuleAndPassManager() {
 	// Open a new module.
 	TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
