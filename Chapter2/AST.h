@@ -110,6 +110,24 @@ public:
 
 	Value *codegen() override;
 };
+
+class StatAST;
+
+/// VarExprAST - Expression class for var/in
+class VarExprAST : public ExprAST {
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+	std::unique_ptr<ExprAST> Body;
+
+public:
+	VarExprAST(
+		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+		std::unique_ptr<ExprAST> Body)
+		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+
+	Value *codegen() override;
+};
+
+
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
@@ -148,7 +166,7 @@ public:
 
   
 };
-class StatAST;
+
 /// FunctionAST - This class represents a function definition itself.
 class FunctionAST {
   std::unique_ptr<PrototypeAST> Proto;

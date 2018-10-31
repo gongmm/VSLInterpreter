@@ -24,6 +24,15 @@ Function *LogErrorF(const char *Str) {
 	return nullptr;
 }
 
+/// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
+/// the function.  This is used for mutable variables etc.
+static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
+	const std::string &VarName) {
+	IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
+		TheFunction->getEntryBlock().begin());
+	return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), nullptr, VarName);
+}
+
 Value *NumberExprAST::codegen() {
 	//return ConstantInt::get(Builder.getInt32Ty(), this->Val, true);
 	return ConstantFP::get(TheContext, APFloat(Val));
@@ -45,6 +54,52 @@ Value * TextExprAST::codegen()
 	
 }
 
+Value *VarExprAST::codegen() {
+	std::vector<AllocaInst *> OldBindings;
+
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+	// 注册所有的变量并进行初始化
+	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
+		const std::string &VarName = VarNames[i].first;
+		ExprAST *Init = VarNames[i].second.get();
+
+		// 在将变量添加到作用于前获得初始化表达式，防止初始化表达式中使用变量本身
+		Value *InitVal;
+		if (Init) {
+			InitVal = Init->codegen();
+			if (!InitVal)
+				return nullptr;
+		}
+		else { // 如果没有指定, 赋值为 0.0.
+			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+		}
+		// 创建 alloca
+		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+		Builder.CreateStore(InitVal, Alloca);
+
+		// 将该变量的先前值存入OldBindings中，以便在该作用域结束后恢复
+		OldBindings.push_back(NamedValues[VarName]);
+
+		// 记录此次绑定的值
+		NamedValues[VarName] = Alloca;
+	}
+
+	// 生成body部分的代码, 现在所有定义的变量均在作用域中
+	Value *BodyVal = Body->codegen();
+	if (!BodyVal)
+		return nullptr;
+
+	// 删除当前作用域中的所有的变量
+	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
+		// 恢复原来的值
+		NamedValues[VarNames[i].first] = OldBindings[i];
+
+	// 返回Body部分的计算结果
+	return BodyVal;
+}
+
+
 Value *UnaryExprAST::codegen() {
   Value *OperandV = Operand->codegen();
   if (!OperandV)
@@ -60,6 +115,28 @@ Value *UnaryExprAST::codegen() {
 }
 
 Value *BinaryExprAST::codegen() {
+	// '=' 情况：作为一种特例处理，因为在赋值情况下我们不将LHS当作表达式
+	if (Op == '=') {
+		// 赋值操作中我们将LHS当作标识符
+		// 假定不使用运行时类型识别（RTTI）这是LLVM的默认生成方式 
+		// =如果希望进行运行时类型识别，可以使用 dynamic_cast 来进行动态错误检查
+		VariableExprAST *LHSE = static_cast<VariableExprAST *>(LHS.get());
+		if (!LHSE)
+			return LogErrorV("destination of '=' must be a variable");
+		// 生成 RHS 部分代码
+		Value *Val = RHS->codegen();
+		if (!Val)
+			return nullptr;
+
+		// 寻找变量名
+		Value *Variable = NamedValues[LHSE->getName()];
+		if (!Variable)
+			return LogErrorV("Unknown variable name");
+
+		Builder.CreateStore(Val, Variable);
+		return Val;
+	}
+
 	Value *L = LHS->codegen();
 	Value *R = RHS->codegen();
 	if (!L || !R)
@@ -204,8 +281,16 @@ Function *FunctionAST::codegen() {
 
 	// Record the function arguments in the NamedValues map.
 	NamedValues.clear();
-	for (auto &Arg : TheFunction->args())
-		NamedValues[Arg.getName()] = &Arg;
+	for (auto &Arg : TheFunction->args()) {
+		// Create an alloca for this variable.
+		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+
+		// Store the initial value into the alloca.
+		Builder.CreateStore(&Arg, Alloca);
+
+		// Add arguments to variable symbol table.
+		NamedValues[Arg.getName()] = Alloca;
+	}
 
 	if (Value *RetVal = Body->codegen()) {
 		// Finish off the function.
@@ -332,6 +417,7 @@ Value * IfStatAST::codegen()
 	
 
 	PN->addIncoming(ThenV, ThenBB);
+
 	
 	return PN;
 }
