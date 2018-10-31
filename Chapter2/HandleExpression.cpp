@@ -126,7 +126,7 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 }
 
 
-/// 单目运算符
+/// 单目运算
 std::unique_ptr<ExprAST> ParseUnary() {
   // 如果不含有单目操作符，将其按普通的项来处理
   if (!isascii(CurTok) || CurTok == '(' || CurTok == ',')

@@ -43,7 +43,9 @@ Value *VariableExprAST::codegen() {
 	Value *V = NamedValues[Name];
 	if (!V)
 		return LogErrorV("Unknown variable name");
-	return V;
+
+	// Load the value.
+	return Builder.CreateLoad(V, Name.c_str());
 }
 
 
@@ -320,23 +322,33 @@ Function *FunctionAST::codegen() {
 
 Value * AssignStatAST::codegen()
 {
-	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+	// *TheFunction = Builder.GetInsertBlock()->getParent();
 	// Create a new basic block to start insertion into.
-	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
-	ValueSymbolTable* st = BB->getValueSymbolTable();
+	//BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
+	/* ValueSymbolTable* st = BB->getValueSymbolTable();
 
 	Value* v = st->lookup(Name);
 	if (v == NULL || v->hasName() == false) {
 		errs() << "undeclared variable " << Name << "\n";
 		return NULL;
 	}
-	
-	Value * result = this->Val->codegen();
+	*/
 
-	
 
-	Value* load = new LoadInst(result, "", false, BB);
-	return load;
+	// Look up the name.
+	Value *Variable = NamedValues[Name];
+	
+	Value * result;
+	if(Val)
+		result = Val->codegen();
+
+	if (!result)
+		return nullptr;
+
+	//Value* load = new LoadInst(result, "", false, BB);
+	Builder.CreateStore(result, Variable);
+	return result;
 	
 
 	// 在 NamedValues map 中寻找该变量.
@@ -424,6 +436,7 @@ Value * IfStatAST::codegen()
 
 Value * WhileStatAST::codegen()
 {
+	
 	//处理循环控制条件
 	Value *StartVal = WhileCondition->codegen();
 	if (!StartVal)
