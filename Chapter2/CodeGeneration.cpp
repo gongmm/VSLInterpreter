@@ -242,7 +242,6 @@ Function *FunctionAST::codegen() {
 	}
 	if (hasMainFunction&&temp != nullptr) {
 		auto args = temp->getArgs();
-        auto args = temp->getArgs();
 		auto Args = P.getArgs();
 		if (args.size() != Args.size()) {
 			//参数不一致，报错返回
