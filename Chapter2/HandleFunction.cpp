@@ -56,8 +56,9 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
   auto nextToken = getNextToken();
   while (nextToken == VARIABLE) {
 	ArgNames.push_back(IdentifierStr);
-    if (getNextToken() == ',')
-      getNextToken();
+    nextToken = getNextToken();
+    if (nextToken == ',')
+      nextToken = getNextToken();
   }
   if (CurTok != ')')
     return LogErrorP("Expected ')' in prototype");
