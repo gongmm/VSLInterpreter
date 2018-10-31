@@ -159,13 +159,13 @@ Function *FunctionAST::codegen() {
 		isMain = true;
 	//先检查是否已经出现了Main函数
 	Function *TheFunction;
-	std::unique_ptr<PrototypeAST> temp;
+	std::unique_ptr<PrototypeAST>temp;
 	if (hasMainFunction) {
 		temp = std::move(MainLackOfProtos[Proto->getName()]);
 	}
 	if (hasMainFunction&&temp != nullptr) {
-		auto& args = temp->getArgs();
-		auto& Args = P.getArgs();
+        auto args = temp->getArgs();
+		auto Args = P.getArgs();
 		if (args.size() != Args.size()) {
 			//参数不一致，报错返回
 			return LogErrorF("main函数调用函数参数不一致");
@@ -306,31 +306,32 @@ Value * IfStatAST::codegen()
 	Builder.CreateBr(MergeBB);
 	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
 	ThenBB = Builder.GetInsertBlock();
-    
-    if (ElseStat) {
-        // Emit else block.
-        TheFunction->getBasicBlockList().push_back(ElseBB);
-        Builder.SetInsertPoint(ElseBB);
-        
-        Value *ElseV = ElseStat->codegen();
-        if (!ElseV)
-            return nullptr;
-        
-        Builder.CreateBr(MergeBB);
-        // codegen of 'Else' can change the current block, update ElseBB for the PHI.
-        ElseBB = Builder.GetInsertBlock();
-        
-    }
-    
-    // Emit merge block.
-    TheFunction->getBasicBlockList().push_back(MergeBB);
-    Builder.SetInsertPoint(MergeBB);
-    PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
-    PN->addIncoming(ThenV, ThenBB);
-    if (ElseStat){
-        PN->addIncoming(ElseV, ElseBB);
-    }
-    
+
+	PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+
+	if (!ElseStat) {
+		// Emit else block.
+		TheFunction->getBasicBlockList().push_back(ElseBB);
+		Builder.SetInsertPoint(ElseBB);
+
+		Value *ElseV = ElseStat->codegen();
+		if (!ElseV)
+			return nullptr;
+
+		Builder.CreateBr(MergeBB);
+		// codegen of 'Else' can change the current block, update ElseBB for the PHI.
+		ElseBB = Builder.GetInsertBlock();
+
+		PN->addIncoming(ElseV, ElseBB);
+	}
+	
+
+	// Emit merge block.
+	TheFunction->getBasicBlockList().push_back(MergeBB);
+	Builder.SetInsertPoint(MergeBB);
+	
+
+	PN->addIncoming(ThenV, ThenBB);
 	
 	return PN;
 }
