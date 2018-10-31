@@ -35,7 +35,8 @@ int main() {
 	InitializeNativeTargetAsmPrinter();
 	InitializeNativeTargetAsmParser();
   // Install standard binary operators.
-  // 1 is lowest precedence.
+  // 1 是最小的优先级
+  BinopPrecedence['='] = 2;
   BinopPrecedence['<'] = 10;
   BinopPrecedence['+'] = 20;
   BinopPrecedence['-'] = 20;

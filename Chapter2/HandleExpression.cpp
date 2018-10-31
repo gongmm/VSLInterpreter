@@ -100,6 +100,11 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	return llvm::make_unique<CallExprAST>(IdName, std::move(Args));
 }
 
+
+
+
+
+
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
@@ -119,6 +124,7 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 	}
 
 }
+
 
 /// µ¥Ä¿ÔËËã·û
 std::unique_ptr<ExprAST> ParseUnary() {

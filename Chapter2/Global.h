@@ -83,7 +83,9 @@ extern void HandleDefinition();
 
 extern LLVMContext TheContext;
 extern std::unique_ptr<Module> TheModule;
-extern std::map<std::string, Value *> NamedValues;
+extern std::map<std::string, AllocaInst *> NamedValues;
+//extern std::map<std::string, Value *> NamedValues;
+
 
 
 
