@@ -53,8 +53,12 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
     return LogErrorP("Expected '(' in prototype");
 
   std::vector<std::string> ArgNames;
-  while (getNextToken() == VARIABLE)
-    ArgNames.push_back(IdentifierStr);
+  auto nextToken = getNextToken();
+  while (nextToken == VARIABLE) {
+	ArgNames.push_back(IdentifierStr);
+    if (getNextToken() == ',')
+      getNextToken();
+  }
   if (CurTok != ')')
     return LogErrorP("Expected ')' in prototype");
 
