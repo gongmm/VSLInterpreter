@@ -224,10 +224,16 @@ public:
 	Value *codegen() override;
 };
 class BlockStatAST : public StatAST {
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
 	std::vector<std::unique_ptr<ExprAST>> Variables;
 	std::vector<std::unique_ptr<StatAST>> Statements;
 	std::map<std::string, llvm::Value*> locals;
 public:
+	BlockStatAST(
+		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+		std::vector<std::unique_ptr<StatAST>>)
+		: VarNames(std::move(VarNames)), Statements(std::move(Statements)) {}
+
 	BlockStatAST(std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
 		: Variables(std::move(Variables)), Statements(std::move(Statements)) {}
 
