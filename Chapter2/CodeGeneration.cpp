@@ -164,8 +164,8 @@ Function *FunctionAST::codegen() {
 		temp = std::move(MainLackOfProtos[Proto->getName()]);
 	}
 	if (hasMainFunction&&temp != nullptr) {
-		auto& args = temp->getArgs();
-		auto& Args = P.getArgs();
+		auto args = temp->getArgs();
+		auto Args = P.getArgs();
 		if (args.size() != Args.size()) {
 			//参数不一致，报错返回
 			return LogErrorF("main函数调用函数参数不一致");
