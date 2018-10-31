@@ -100,6 +100,58 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	return llvm::make_unique<CallExprAST>(IdName, std::move(Args));
 }
 
+
+
+/// varexpr ::= 'var' identifier ('=' expression)
+static std::unique_ptr<ExprAST> ParseVarExpr() {
+	getNextToken(); // eat the var.
+
+	/**
+	* 变量声明、初始化部分代码
+	*/
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+
+	// 至少需要一个变量名
+	if (CurTok != VARIABLE)
+		return LogError("expected identifier after var");
+
+	while (true) {
+		std::string Name = IdentifierStr;
+		getNextToken(); // eat identifier.
+
+		// 读取可能存在的初始化表达式
+		std::unique_ptr<ExprAST> Init = nullptr;
+		if (CurTok == '=') {
+			getNextToken(); // eat the '='.
+
+			Init = ParseExpression();
+			if (!Init)
+				return nullptr;
+		}
+
+		VarNames.push_back(std::make_pair(Name, std::move(Init)));
+
+		// 声明变量部分结束，退出循环
+		if (CurTok != ',')
+			break;
+		getNextToken(); // eat the ','.
+
+		if (CurTok != VARIABLE)
+			return LogError("expected identifier list after var");
+	}
+
+
+	/**
+	* 处理Body部分代码
+	*/
+	auto Body = ParseExpression();
+	if (!Body)
+		return nullptr;
+
+	return llvm::make_unique<VarExprAST>(std::move(VarNames), std::move(Body));
+}
+
+
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
@@ -112,6 +164,8 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 		return ParseIdentifierExpr();
 	case INTEGER:
 		return ParseNumberExpr();
+	case VAR:
+		return ParseVarExpr();
 	case '(':
 		return ParseParenExpr();
     case '-':
@@ -119,6 +173,7 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 	}
 
 }
+
 
 /// 单目运算符
 std::unique_ptr<ExprAST> ParseUnary() {

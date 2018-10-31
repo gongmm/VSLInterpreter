@@ -50,6 +50,9 @@ std::unique_ptr<StatAST> ParseStatement() {
 		return LogErrorS("unknown token when expecting an statement");
 	}
 }
+
+
+
 //Assignment Statement
 std::unique_ptr<StatAST> ParseAssignStat() {
 	int indentBefore=indent;
