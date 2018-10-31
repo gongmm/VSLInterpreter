@@ -113,19 +113,6 @@ public:
 
 class StatAST;
 
-/// VarExprAST - Expression class for var/in
-class VarExprAST : public ExprAST {
-	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
-	std::unique_ptr<ExprAST> Body;
-
-public:
-	VarExprAST(
-		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
-		std::unique_ptr<ExprAST> Body)
-		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
-
-	Value *codegen() override;
-};
 
 
 /// PrototypeAST - This class represents the "prototype" for a function,
@@ -144,7 +131,7 @@ public:
   Function *codegen();
 
   const std::string &getName() const { return Name; }
-   std::vector<std::string> getArgs() const { return Args; }
+   std::vector<std::string> getArgs()const { return Args; }
    void setArgs(std::vector<std::string> args) {
 	   std::vector<std::string> V(args);
 	   Args = std::move(V);
@@ -246,4 +233,20 @@ public:
 
 	Value *codegen() override;
 };
+
+
+/// VarExprAST - Expression class for var
+class VarExprAST : public StatAST {
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+	std::unique_ptr<StatAST> Body;
+
+public:
+	VarExprAST(
+		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+		std::unique_ptr<StatAST> Body)
+		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+
+	Value *codegen() override;
+};
+
 

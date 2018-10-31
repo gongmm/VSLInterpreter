@@ -21,6 +21,7 @@ std::unique_ptr<StatAST> ParsePrintStat();
 std::unique_ptr<StatAST> ParseIfStat();
 std::unique_ptr<StatAST> ParseWhileStat();
 std::unique_ptr<StatAST> ParseBlockStat();
+std::unique_ptr<StatAST> ParseVarStat();
 std::unique_ptr<StatAST> ParseStatement() {
 	switch (CurTok) {
 	case VARIABLE:
@@ -40,6 +41,9 @@ std::unique_ptr<StatAST> ParseStatement() {
 	case WHILE:
 		getNextToken();
 		return ParseWhileStat();
+
+	case VAR:
+		return ParseVarStat();
 	case '{':
 		getNextToken();
 		return ParseBlockStat();
@@ -51,7 +55,54 @@ std::unique_ptr<StatAST> ParseStatement() {
 	}
 }
 
+/// varexpr ::= 'var' identifier ('=' expression)
+static std::unique_ptr<StatAST> ParseVarStat() {
+	getNextToken(); // eat the var.
 
+	/**
+	* 变量声明、初始化部分代码
+	*/
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+
+	// 至少需要一个变量名
+	if (CurTok != VARIABLE)
+		return LogErrorS("expected identifier after var");
+
+	while (true) {
+		std::string Name = IdentifierStr;
+		getNextToken(); // eat identifier.
+
+		// 读取可能存在的初始化表达式
+		std::unique_ptr<ExprAST> Init = nullptr;
+		if (CurTok == '=') {
+			getNextToken(); // eat the '='.
+
+			Init = ParseExpression();
+			if (!Init)
+				return nullptr;
+		}
+
+		VarNames.push_back(std::make_pair(Name, std::move(Init)));
+
+		// 声明变量部分结束，退出循环
+		if (CurTok != ',')
+			break;
+		getNextToken(); // eat the ','.
+
+		if (CurTok != VARIABLE)
+			return LogErrorS("expected identifier list after var");
+	}
+
+
+	/**
+	* 处理Body部分代码
+	*/
+	auto Body = ParseStatement();
+	if (!Body)
+		return nullptr;
+
+	return llvm::make_unique<VarExprAST>(std::move(VarNames), std::move(Body));
+}
 
 //Assignment Statement
 std::unique_ptr<StatAST> ParseAssignStat() {
