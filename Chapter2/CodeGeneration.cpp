@@ -495,6 +495,56 @@ Value * WhileStatAST::codegen()
 
 Value * BlockStatAST::codegen()
 {
+	std::vector<AllocaInst *> OldBindings;
+
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+	// 注册所有的变量并进行初始化
+	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
+		const std::string &VarName = VarNames[i].first;
+		ExprAST *Init = VarNames[i].second.get();
+
+		// 在将变量添加到作用于前获得初始化表达式，防止初始化表达式中使用变量本身
+		Value *InitVal;
+		if (Init) {
+			InitVal = Init->codegen();
+			if (!InitVal)
+				return nullptr;
+		}
+		else { // 如果没有指定, 赋值为 0.0.
+			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+		}
+		// 创建 alloca
+		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+		Builder.CreateStore(InitVal, Alloca);
+
+		// 将该变量的先前值存入OldBindings中，以便在该作用域结束后恢复
+		OldBindings.push_back(NamedValues[VarName]);
+
+		// 记录此次绑定的值
+		NamedValues[VarName] = Alloca;
+	}
+
+	// 生成body部分的代码, 现在所有定义的变量均在作用域中
+	Value *ret;
+	for (unsigned i = 0, e = Statements.size(); i != e; ++i) {
+		ret = Statements[i]->codegen();
+
+	}
+	if (!ret)
+		return nullptr;
+
+	// 删除当前作用域中的所有的变量
+	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
+		// 恢复原来的值
+		NamedValues[VarNames[i].first] = OldBindings[i];
+
+	// 返回Body部分的计算结果
+	return ret;
+
+
+	/*
+
 	// delcaration
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 	// Create a new basic block to start insertion into.
@@ -538,6 +588,8 @@ Value * BlockStatAST::codegen()
 	
 
 	return nullptr;
+	*/
+	
 }
 
 Value * ContinueStatAST::codegen()
