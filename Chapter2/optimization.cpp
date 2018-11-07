@@ -10,13 +10,13 @@ void InitializeModuleAndPassManager() {
 	TheFPM = llvm::make_unique<legacy::FunctionPassManager>(TheModule.get());
 
 	// Do simple "peephole" optimizations and bit-twiddling optzns.
-	TheFPM->add(createInstructionCombiningPass());
+/*	TheFPM->add(createInstructionCombiningPass());
 	// Reassociate expressions.
 	TheFPM->add(createReassociatePass());
 	// Eliminate Common SubExpressions.
 	TheFPM->add(createGVNPass());
 	// Simplify the control flow graph (deleting unreachable blocks, etc).
-	TheFPM->add(createCFGSimplificationPass());
+	TheFPM->add(createCFGSimplificationPass());*/
 
 	TheFPM->doInitialization();
 }
