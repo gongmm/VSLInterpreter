@@ -30,7 +30,7 @@ static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 	const std::string &VarName) {
 	IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
 		TheFunction->getEntryBlock().begin());
-	return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), nullptr, VarName);
+	return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), nullptr, VarName.c_str());
 }
 
 Value *NumberExprAST::codegen() {
