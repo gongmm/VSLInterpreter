@@ -110,7 +110,7 @@ extern void processMain();
 // "Library" functions that can be "extern'd" from user code.
 //===----------------------------------------------------------------------===//
 //Ìí¼Óprintµ÷ÓÃ
-#ifdef _WIN32
+/*#ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)
 #else
 #define DLLEXPORT
@@ -127,5 +127,6 @@ extern "C" DLLEXPORT double printd(double X) {
 	fprintf(stderr, "%f\n", X);
 	return 0;
 }
+*/
 
 #endif // ! GLOBAL
