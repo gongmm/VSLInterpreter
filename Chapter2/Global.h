@@ -97,10 +97,10 @@ extern std::map<std::string, AllocaInst *> NamedValues;
 extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
-//优化代码
+//optimize
 void InitializeModuleAndPassManager();
 Function *getFunction(std::string Name);
-//添加支持main的变量
+//support main()
 extern bool isMain;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> MainLackOfProtos;
 extern bool hasMainFunction;
