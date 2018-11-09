@@ -279,7 +279,7 @@ public:
 
 
 /// VarExprAST - Expression class for var
-class VarExprAST : public ExprAST {
+class VarExprAST : public StatAST {
 	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
 	std::unique_ptr<StatAST> Body;
 

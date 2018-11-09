@@ -100,46 +100,6 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	return llvm::make_unique<CallExprAST>(IdName, std::move(Args));
 }
 
-/// varexpr ::= 'var' identifier ('=' expression)
-static std::unique_ptr<ExprAST> ParseVarExpr() {
-    getNextToken();
-    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
-    
-    if (CurTok != VARIABLE)
-        return LogError("expected identifier after var");
-    
-    while (true) {
-        std::string Name = IdentifierStr;
-        getNextToken();
-        
-        //read the initialization expression that may exist
-        std::unique_ptr<ExprAST> Init = nullptr; if (CurTok == '=') {
-            getNextToken(); // eat the '='.
-            Init = ParseExpression();
-            if (!Init)
-                return nullptr;
-        }
-         VarNames.push_back(std::make_pair(Name, std::move(Init)));
-        // end of declaring variables and out of loop
-        if (CurTok != ',')
-            break;
-        getNextToken(); // eat the ','.
-        if (CurTok != VARIABLE)
-            return LogError("expected identifier list after var");
-    }
-    auto Body = ParseExpression();
-    
-    if (!Body)
-        return nullptr;
-    
-    return llvm::make_unique<VarExprAST>(std::move(VarNames),std::move(Body));
-
-}
-
-
-
-
-
 
 /// primary
 ///   ::= identifierexpr
@@ -153,8 +113,6 @@ std::unique_ptr<ExprAST> ParsePrimary() {
 		return ParseIdentifierExpr();
 	case INTEGER:
 		return ParseNumberExpr();
-    case VAR:
-        return ParseVarExpr();
 	case '(':
 		return ParseParenExpr();
     case '-':
