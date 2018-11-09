@@ -56,7 +56,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 }
 
 /// varexpr ::= 'var' identifier ('=' expression)
-static std::unique_ptr<StatAST> ParseVarStat() {
+ std::unique_ptr<StatAST> ParseVarStat() {
 	getNextToken(); // eat the var.
 
 	/**

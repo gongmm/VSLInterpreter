@@ -248,6 +248,8 @@ public:
 	Value *codegen() override;
 };
 class WhileStatAST : public StatAST {
+    //i's value
+    std::string VarName;
 	std::unique_ptr<ExprAST> WhileCondition;
 	std::unique_ptr<StatAST> DoStat;
 public:

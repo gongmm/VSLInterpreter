@@ -440,51 +440,56 @@ Value * WhileStatAST::codegen()
 	Value *StartVal = WhileCondition->codegen();
 	if (!StartVal)
 		return nullptr;
-
-	// 将该条件的表达式的值与零进行比较, 从而将真值作为1位 (bool) 值获取。以确定循环是否应该退出
-	StartVal = Builder.CreateFCmpONE(StartVal, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
-
+    
 	// 获取正在构建的当前Function对象
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
-	// 用来创建Phi节点
-	BasicBlock *PreheaderBB = Builder.GetInsertBlock();
-	// 创建循环体基本块
+    
+    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+    
+    Builder.CreateStore(StartVal, Alloca);
+    
+    
+	//create loop block
 	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
+    
+    // create after block
+    BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloop", TheFunction);
+    
+    
+    StartVal=Builder.CreateFCmpONE(Builder.CreateLoad(Alloca), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 
-	// 创建当前块到循环体的一个无条件分支
-	Builder.CreateBr(LoopBB);
+    // branch base on startcond
+    Builder.CreateCondBr(StartVal, LoopBB, AfterBB);
+    
 
-	// 将插入点切换到 LoopBB.
+    // insert LoopBB.
 	Builder.SetInsertPoint(LoopBB);
-	// 创建PHI节点
-	PHINode *Variable = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "loopend");
-	// 将初始的表达式的值传入PHI节点，目前Preheader还不存在
-	Variable->addIncoming(StartVal, PreheaderBB);
-	// 生成循环体Statement部分的代码
+
+    //save  NamedValues[VarName]
+    Value *OldVal = Builder.CreateLoad(NamedValues[VarName]);
+    NamedValues[VarName]=Alloca;
+    
 	if (!DoStat->codegen())
 		return nullptr;
 
-	//处理循环控制条件
 	Value *EndCond = WhileCondition->codegen();
 	if (!EndCond)
 		return nullptr;
 
-	// 将该条件的表达式的值与零进行比较, 从而将真值作为1位 (bool) 值获取。以确定循环是否应该退出
-	EndCond = Builder.CreateFCmpONE(EndCond, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+    Builder.CreateStore(EndCond, Alloca);
+    
+    EndCond=Builder.CreateFCmpONE(Builder.CreateLoad(Alloca), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 
-	// 记住结束块
-	BasicBlock *LoopEndBB = Builder.GetInsertBlock();
-	// 创建“循环退出”基本块，并插入
-	BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloop", TheFunction);
+    Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
 
-	// 根据循环控制条件创建条件分支
-	Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
-
-	// 任何之后的代码会被插入到AfterBB中，所以将插入点设置到AfterBB
+	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
 
-	// 为PHI节点设置新值
-	Variable->addIncoming(EndCond, LoopEndBB);
+	// Restore the unshadowed variable.t
+    if (OldVal)
+        Builder.CreateStore(OldVal, Alloca);
+    else
+        NamedValues.erase(VarName);
 
 
 	// while循环的代码生成总是返回0.0
