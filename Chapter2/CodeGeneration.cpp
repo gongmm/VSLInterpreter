@@ -61,7 +61,7 @@ Value *VarExprAST::codegen() {
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
-	// 注册所有的变量并进行初始化
+	//  register all variables and initialize them
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
 		const std::string &VarName = VarNames[i].first;
 		ExprAST *Init = VarNames[i].second.get();
@@ -117,7 +117,7 @@ Value *UnaryExprAST::codegen() {
 }
 
 Value *BinaryExprAST::codegen() {
-	// '=' 情况：作为一种特例处理，因为在赋值情况下我们不将LHS当作表达式
+	// '=' special handle, LHS isn't taken as expr
 	if (Op == '=') {
 		// 赋值操作中我们将LHS当作标识符
 		// 假定不使用运行时类型识别（RTTI）这是LLVM的默认生成方式 
@@ -602,3 +602,4 @@ Value * ContinueStatAST::codegen()
 {
 	return nullptr;
 }
+
