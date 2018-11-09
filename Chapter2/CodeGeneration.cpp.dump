@@ -61,43 +61,43 @@ Value *VarExprAST::codegen() {
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
-	// ×¢²áËùÓĞµÄ±äÁ¿²¢½øĞĞ³õÊ¼»¯
+	// æ³¨å†Œæ‰€æœ‰çš„å˜é‡å¹¶è¿›è¡Œåˆå§‹åŒ–
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
 		const std::string &VarName = VarNames[i].first;
 		ExprAST *Init = VarNames[i].second.get();
 
-		// ÔÚ½«±äÁ¿Ìí¼Óµ½×÷ÓÃÓÚÇ°»ñµÃ³õÊ¼»¯±í´ïÊ½£¬·ÀÖ¹³õÊ¼»¯±í´ïÊ½ÖĞÊ¹ÓÃ±äÁ¿±¾Éí
+		// åœ¨å°†å˜é‡æ·»åŠ åˆ°ä½œç”¨äºå‰è·å¾—åˆå§‹åŒ–è¡¨è¾¾å¼ï¼Œé˜²æ­¢åˆå§‹åŒ–è¡¨è¾¾å¼ä¸­ä½¿ç”¨å˜é‡æœ¬èº«
 		Value *InitVal;
 		if (Init) {
 			InitVal = Init->codegen();
 			if (!InitVal)
 				return nullptr;
 		}
-		else { // Èç¹ûÃ»ÓĞÖ¸¶¨, ¸³ÖµÎª 0.0.
+		else { // å¦‚æœæ²¡æœ‰æŒ‡å®š, èµ‹å€¼ä¸º 0.0.
 			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
 		}
-		// ´´½¨ alloca
+		// åˆ›å»º alloca
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
 		Builder.CreateStore(InitVal, Alloca);
 
-		// ½«¸Ã±äÁ¿µÄÏÈÇ°Öµ´æÈëOldBindingsÖĞ£¬ÒÔ±ãÔÚ¸Ã×÷ÓÃÓò½áÊøºó»Ö¸´
+		// å°†è¯¥å˜é‡çš„å…ˆå‰å€¼å­˜å…¥OldBindingsä¸­ï¼Œä»¥ä¾¿åœ¨è¯¥ä½œç”¨åŸŸç»“æŸåæ¢å¤
 		OldBindings.push_back(NamedValues[VarName]);
 
-		// ¼ÇÂ¼´Ë´Î°ó¶¨µÄÖµ
+		// è®°å½•æ­¤æ¬¡ç»‘å®šçš„å€¼
 		NamedValues[VarName] = Alloca;
 	}
 
-	// Éú³Ébody²¿·ÖµÄ´úÂë, ÏÖÔÚËùÓĞ¶¨ÒåµÄ±äÁ¿¾ùÔÚ×÷ÓÃÓòÖĞ
+	// ç”Ÿæˆbodyéƒ¨åˆ†çš„ä»£ç , ç°åœ¨æ‰€æœ‰å®šä¹‰çš„å˜é‡å‡åœ¨ä½œç”¨åŸŸä¸­
 	Value *BodyVal = Body->codegen();
 	if (!BodyVal)
 		return nullptr;
 
-	// É¾³ıµ±Ç°×÷ÓÃÓòÖĞµÄËùÓĞµÄ±äÁ¿
+	// åˆ é™¤å½“å‰ä½œç”¨åŸŸä¸­çš„æ‰€æœ‰çš„å˜é‡
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
-		// »Ö¸´Ô­À´µÄÖµ
+		// æ¢å¤åŸæ¥çš„å€¼
 		NamedValues[VarNames[i].first] = OldBindings[i];
 
-	// ·µ»ØBody²¿·ÖµÄ¼ÆËã½á¹û
+	// è¿”å›Bodyéƒ¨åˆ†çš„è®¡ç®—ç»“æœ
 	return BodyVal;
 }
 
@@ -113,24 +113,24 @@ Value *UnaryExprAST::codegen() {
 
   return Builder.CreateCall(
       F, OperandV,
-      "unop"); //µ÷ÓÃ²Ù×÷·û¶ÔÓ¦º¯Êı£¬·µ»Øº¯Êı´¦Àí¹ıµÄÊıÖµ£¬Íê³Éµ¥Ä¿²Ù×÷·û¶Ô±í´ïÊ½µÄÔËËã
+      "unop"); //è°ƒç”¨æ“ä½œç¬¦å¯¹åº”å‡½æ•°ï¼Œè¿”å›å‡½æ•°å¤„ç†è¿‡çš„æ•°å€¼ï¼Œå®Œæˆå•ç›®æ“ä½œç¬¦å¯¹è¡¨è¾¾å¼çš„è¿ç®—
 }
 
 Value *BinaryExprAST::codegen() {
-	// '=' Çé¿ö£º×÷ÎªÒ»ÖÖÌØÀı´¦Àí£¬ÒòÎªÔÚ¸³ÖµÇé¿öÏÂÎÒÃÇ²»½«LHSµ±×÷±í´ïÊ½
+	// '=' æƒ…å†µï¼šä½œä¸ºä¸€ç§ç‰¹ä¾‹å¤„ç†ï¼Œå› ä¸ºåœ¨èµ‹å€¼æƒ…å†µä¸‹æˆ‘ä»¬ä¸å°†LHSå½“ä½œè¡¨è¾¾å¼
 	if (Op == '=') {
-		// ¸³Öµ²Ù×÷ÖĞÎÒÃÇ½«LHSµ±×÷±êÊ¶·û
-		// ¼Ù¶¨²»Ê¹ÓÃÔËĞĞÊ±ÀàĞÍÊ¶±ğ£¨RTTI£©ÕâÊÇLLVMµÄÄ¬ÈÏÉú³É·½Ê½ 
-		// =Èç¹ûÏ£Íû½øĞĞÔËĞĞÊ±ÀàĞÍÊ¶±ğ£¬¿ÉÒÔÊ¹ÓÃ dynamic_cast À´½øĞĞ¶¯Ì¬´íÎó¼ì²é
+		// èµ‹å€¼æ“ä½œä¸­æˆ‘ä»¬å°†LHSå½“ä½œæ ‡è¯†ç¬¦
+		// å‡å®šä¸ä½¿ç”¨è¿è¡Œæ—¶ç±»å‹è¯†åˆ«ï¼ˆRTTIï¼‰è¿™æ˜¯LLVMçš„é»˜è®¤ç”Ÿæˆæ–¹å¼ 
+		// =å¦‚æœå¸Œæœ›è¿›è¡Œè¿è¡Œæ—¶ç±»å‹è¯†åˆ«ï¼Œå¯ä»¥ä½¿ç”¨ dynamic_cast æ¥è¿›è¡ŒåŠ¨æ€é”™è¯¯æ£€æŸ¥
 		VariableExprAST *LHSE = static_cast<VariableExprAST *>(LHS.get());
 		if (!LHSE)
 			return LogErrorV("destination of '=' must be a variable");
-		// Éú³É RHS ²¿·Ö´úÂë
+		// ç”Ÿæˆ RHS éƒ¨åˆ†ä»£ç 
 		Value *Val = RHS->codegen();
 		if (!Val)
 			return nullptr;
 
-		// Ñ°ÕÒ±äÁ¿Ãû
+		// å¯»æ‰¾å˜é‡å
 		Value *Variable = NamedValues[LHSE->getName()];
 		if (!Variable)
 			return LogErrorV("Unknown variable name");
@@ -159,33 +159,33 @@ Value *BinaryExprAST::codegen() {
 	//	return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
 	default:
 		//return LogErrorV("invalid binary operator");
-        //ÈôÎªĞÂÔö²Ù×÷·û£¬Ìø³öµ½ÏÂÃæÖ´ĞĞ
+        //è‹¥ä¸ºæ–°å¢æ“ä½œç¬¦ï¼Œè·³å‡ºåˆ°ä¸‹é¢æ‰§è¡Œ
 		break;
 	}
-	// Ìø×ª²¢Ö´ĞĞĞÂÔö²Ù×÷·û¶ÔÓ¦µÄº¯Êı
+	// è·³è½¬å¹¶æ‰§è¡Œæ–°å¢æ“ä½œç¬¦å¯¹åº”çš„å‡½æ•°
 	Function *F = getFunction(std::string("binary") + Op);
     assert(F && "binary operator not found!");
 
     Value *Ops[2] = {L, R};
-    // µ÷ÓÃ¶ÔÓ¦º¯Êı
+    // è°ƒç”¨å¯¹åº”å‡½æ•°
     return Builder.CreateCall(F, Ops, "binop");
 }
 
 Value *CallExprAST::codegen() {
-	//ĞŞ¸ÄÇ°
+	//ä¿®æ”¹å‰
 	/*// Look up the name in the global module table.
 	Function *CalleeF = TheModule->getFunction(Callee);*/
-	//ĞŞ¸Äºó
+	//ä¿®æ”¹å
 	// Look up the name in the global module table.
 	Function *CalleeF = getFunction(Callee);
 	if (isMain&&CalleeF==nullptr) {
 		std::vector<std::string> ArgNames;
-		//ÔİÊ±´æ´¢Ãû³Æ£¬Ãû³ÆÃûÎª´íÎóÖµ£¬µ½ÕæÕıÓöµ½º¯ÊıÊ±ÔÙ¼Ó
+		//æš‚æ—¶å­˜å‚¨åç§°ï¼Œåç§°åä¸ºé”™è¯¯å€¼ï¼Œåˆ°çœŸæ­£é‡åˆ°å‡½æ•°æ—¶å†åŠ 
 		for (int i = 0; i < Args.size();i++) {
 			ArgNames.push_back("temp"+i);
 		}
 		MainLackOfProtos[Callee]= llvm::make_unique<PrototypeAST>(Callee, std::move(ArgNames));
-		//´æÔÚÎÊÌâ£ºÈôÊÇÏÂ´ÎÔÚÈ¡¸ÃÖµÃû³Æ²»Ò»ÖÂÔõÃ´°ì£¡£¡£¡
+		//å­˜åœ¨é—®é¢˜ï¼šè‹¥æ˜¯ä¸‹æ¬¡åœ¨å–è¯¥å€¼åç§°ä¸ä¸€è‡´æ€ä¹ˆåŠï¼ï¼ï¼
 		CalleeF = getLackFunction(Callee);
 	}
 	if (!CalleeF)
@@ -206,7 +206,7 @@ Value *CallExprAST::codegen() {
 }
 
 Function *PrototypeAST::codegen() {
-	// Ñ°ÕÒÊÇ·ñÓĞÒÑ¾­´æÔÚµÄº¯Êı
+	// å¯»æ‰¾æ˜¯å¦æœ‰å·²ç»å­˜åœ¨çš„å‡½æ•°
 	Function *TheFunction = TheModule->getFunction(Name);
 
 	if (TheFunction)
@@ -230,13 +230,13 @@ Function *PrototypeAST::codegen() {
 }
 
 Function *FunctionAST::codegen() {
-	//Ìí¼Ó¶ÔÈ«¾Öº¯ÊıÔ­ĞÍ±íFunctionProtosµÄĞŞ¸Ä£¬ĞŞ¸ÄgetFunctionµÄ·½Ê½
+	//æ·»åŠ å¯¹å…¨å±€å‡½æ•°åŸå‹è¡¨FunctionProtosçš„ä¿®æ”¹ï¼Œä¿®æ”¹getFunctionçš„æ–¹å¼
 	auto &P = *Proto;
 
-	//Ìí¼Ó¹ØÓÚmainµÄÂß¼­-------------------------------------------
+	//æ·»åŠ å…³äºmainçš„é€»è¾‘-------------------------------------------
 	if (P.getName() == "main")
 		isMain = true;
-	//check if main already exists
+	//å…ˆæ£€æŸ¥æ˜¯å¦å·²ç»å‡ºç°äº†Mainå‡½æ•°
 	Function *TheFunction;
 	std::unique_ptr<PrototypeAST>temp;
 	if (hasMainFunction) {
@@ -246,8 +246,8 @@ Function *FunctionAST::codegen() {
 		auto args = temp->getArgs();
 		auto Args = P.getArgs();
 		if (args.size() != Args.size()) {
-			//args inconsistency
-			return LogErrorF("main function's arg_size is inconsistent");
+			//å‚æ•°ä¸ä¸€è‡´ï¼ŒæŠ¥é”™è¿”å›
+			return LogErrorF("main function's arg_size not same as");
 		}
 		P.setArgs(args);
 		FunctionProtos[Proto->getName()] = std::move(temp);
@@ -259,17 +259,23 @@ Function *FunctionAST::codegen() {
 		for (auto &Arg : TheFunction->args())
 			Arg.setName(Args[Idx++]);
 	}
-	//main-------------------------------------------
+	//æ·»åŠ å…³äºmainçš„é€»è¾‘-------------------------------------------
 	else {
 		FunctionProtos[Proto->getName()] = std::move(Proto);
 		TheFunction = getFunction(P.getName());
 		if (!TheFunction)
 			return nullptr;
 	}
-//old edition
-//if op add it and its precedence to binopprecedence
-	if (P.isBinaryOp())
+//ä»¥å‰çš„ç‰ˆæœ¬	
+
+	if (P.isBinaryOp()) // å¦‚æœæ˜¯æ“ä½œç¬¦ï¼Œå°†æ“ä½œç¬¦åŠå…¶ä¼˜å…ˆçº§æ·»åŠ åˆ°ä¼˜å…ˆçº§è¡¨ä¸­
           BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence();
+
+    //ä»¥å‰çš„ç‰ˆæœ¬	
+/*	Function *TheFunction = Proto->codegen();
+
+	if (!TheFunction)
+		return nullptr;*/
 
 	// Create a new basic block to start insertion into.
 	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
@@ -298,7 +304,7 @@ Function *FunctionAST::codegen() {
 		// Run the optimizer on the function.
 		TheFPM->run(*TheFunction);
 
-		//¸üĞÂisMainÖµ
+		//æ›´æ–°isMainå€¼
 		if (P.getName() == "main") {
 			isMain = false;
 			hasMainFunction = true;
@@ -331,9 +337,9 @@ Value * AssignStatAST::codegen()
 
 
 	// Look up the name.
-	AllocaInst *Alloca = NamedValues[Name];
+	Value *Variable = NamedValues[Name];
 	
-	Value * result=nullptr;
+	Value * result;
 	if(Val)
 		result = Val->codegen();
 
@@ -341,15 +347,15 @@ Value * AssignStatAST::codegen()
 		return nullptr;
 
 	//Value* load = new LoadInst(result, "", false, BB);
-	Builder.CreateStore(result, Alloca);
+	Builder.CreateStore(result, Variable);
 	return result;
 	
 
-	// ÔÚ NamedValues map ÖĞÑ°ÕÒ¸Ã±äÁ¿.
+	// åœ¨ NamedValues map ä¸­å¯»æ‰¾è¯¥å˜é‡.
 	//Value *V = NamedValues[Name];
 	//if (!V)
 		//return LogErrorV("Unknown variable name");
-	// ¸³Öµ
+	// èµ‹å€¼
 	//NamedValues[Name] = result;
 
 	//return Builder.CreateStore(result, TheModule->getGlobalVariable(this->Name));
@@ -369,21 +375,15 @@ Value * PrintStatAST::codegen()
 
 Value * IfStatAST::codegen()
 {
-    
-    // Get the current Function object that is being built
-    Function *TheFunction = Builder.GetInsertBlock()->getParent();
-
-      // Create an alloca for the variable in the entry block.
-    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
-    
-    Value *OldVal=Builder.CreateLoad(NamedValues[VarName]);
-    NamedValues[VarName]=Alloca;
-
 	Value *CondV = IfCondition -> codegen();
 	if (!CondV)
 		return nullptr;
+
 	// Convert condition to a bool by comparing non-equal to 0.0.
 	CondV = Builder.CreateFCmpONE(CondV, ConstantFP::get(TheContext, APFloat(0.0)), "ifcond");
+
+	// Get the current Function object that is being built
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
 	// Create blocks for the then and else cases.  
 	// Insert the 'then' block at the end of the function.
@@ -400,11 +400,11 @@ Value * IfStatAST::codegen()
     if (!ThenV)
         return nullptr;
     
-    Builder.CreateStore(ThenV, NamedValues[VarName]);
-    
     Builder.CreateBr(MergeBB);
+    // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+    ThenBB = Builder.GetInsertBlock();
     
-    Value *ElseV=nullptr;
+    Value *ElseV;
     
     if (ElseStat) {
         // Emit else block.
@@ -415,35 +415,33 @@ Value * IfStatAST::codegen()
         if (!ElseV)
             return nullptr;
         
-        Builder.CreateStore(ElseV, NamedValues[VarName]);
         Builder.CreateBr(MergeBB);
-        
+        // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+        ElseBB = Builder.GetInsertBlock();
     }
-    
     TheFunction->getBasicBlockList().push_back(MergeBB);
     Builder.SetInsertPoint(MergeBB);
     
-    Value *result=Builder.CreateLoad(NamedValues[VarName]);
+    PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+    PN->addIncoming(ThenV, ThenBB);
     
-    // Restore the unshadowed variable.t
-    if (OldVal)
-        Builder.CreateStore(OldVal, NamedValues[VarName]);
-    else
-        NamedValues.erase(VarName);
+    if (ElseStat){
+        PN->addIncoming(ElseV, ElseBB);
+    }
    
-    return result;
+    return PN;
 }
 
 
 Value * WhileStatAST::codegen()
 {
 	
-	//´¦ÀíÑ­»·¿ØÖÆÌõ¼ş
+	//å¤„ç†å¾ªç¯æ§åˆ¶æ¡ä»¶
 	Value *StartVal = WhileCondition->codegen();
 	if (!StartVal)
 		return nullptr;
     
-	// »ñÈ¡ÕıÔÚ¹¹½¨µÄµ±Ç°Function¶ÔÏó
+	// è·å–æ­£åœ¨æ„å»ºçš„å½“å‰Functionå¯¹è±¡
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
     
     AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
@@ -494,7 +492,7 @@ Value * WhileStatAST::codegen()
         NamedValues.erase(VarName);
 
 
-	// whileÑ­»·µÄ´úÂëÉú³É×ÜÊÇ·µ»Ø0.0
+	// whileå¾ªç¯çš„ä»£ç ç”Ÿæˆæ€»æ˜¯è¿”å›0.0
 	return Constant::getNullValue(Type::getDoubleTy(TheContext));
 }
 
@@ -505,33 +503,33 @@ Value * BlockStatAST::codegen()
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
-	// ×¢²áËùÓĞµÄ±äÁ¿²¢½øĞĞ³õÊ¼»¯
+	// æ³¨å†Œæ‰€æœ‰çš„å˜é‡å¹¶è¿›è¡Œåˆå§‹åŒ–
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
 		const std::string &VarName = VarNames[i].first;
 		ExprAST *Init = VarNames[i].second.get();
 
-		// ÔÚ½«±äÁ¿Ìí¼Óµ½×÷ÓÃÓÚÇ°»ñµÃ³õÊ¼»¯±í´ïÊ½£¬·ÀÖ¹³õÊ¼»¯±í´ïÊ½ÖĞÊ¹ÓÃ±äÁ¿±¾Éí
+		// åœ¨å°†å˜é‡æ·»åŠ åˆ°ä½œç”¨äºå‰è·å¾—åˆå§‹åŒ–è¡¨è¾¾å¼ï¼Œé˜²æ­¢åˆå§‹åŒ–è¡¨è¾¾å¼ä¸­ä½¿ç”¨å˜é‡æœ¬èº«
 		Value *InitVal;
 		if (Init) {
 			InitVal = Init->codegen();
 			if (!InitVal)
 				return nullptr;
 		}
-		else { // Èç¹ûÃ»ÓĞÖ¸¶¨, ¸³ÖµÎª 0.0.
+		else { // å¦‚æœæ²¡æœ‰æŒ‡å®š, èµ‹å€¼ä¸º 0.0.
 			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
 		}
-		// ´´½¨ alloca
+		// åˆ›å»º alloca
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
 		Builder.CreateStore(InitVal, Alloca);
 
-		// ½«¸Ã±äÁ¿µÄÏÈÇ°Öµ´æÈëOldBindingsÖĞ£¬ÒÔ±ãÔÚ¸Ã×÷ÓÃÓò½áÊøºó»Ö¸´
+		// å°†è¯¥å˜é‡çš„å…ˆå‰å€¼å­˜å…¥OldBindingsä¸­ï¼Œä»¥ä¾¿åœ¨è¯¥ä½œç”¨åŸŸç»“æŸåæ¢å¤
 		OldBindings.push_back(NamedValues[VarName]);
 
-		// ¼ÇÂ¼´Ë´Î°ó¶¨µÄÖµ
+		// è®°å½•æ­¤æ¬¡ç»‘å®šçš„å€¼
 		NamedValues[VarName] = Alloca;
 	}
 
-	// Éú³Ébody²¿·ÖµÄ´úÂë, ÏÖÔÚËùÓĞ¶¨ÒåµÄ±äÁ¿¾ùÔÚ×÷ÓÃÓòÖĞ
+	// ç”Ÿæˆbodyéƒ¨åˆ†çš„ä»£ç , ç°åœ¨æ‰€æœ‰å®šä¹‰çš„å˜é‡å‡åœ¨ä½œç”¨åŸŸä¸­
 	Value *ret;
 	for (unsigned i = 0, e = Statements.size(); i != e; ++i) {
 		ret = Statements[i]->codegen();
@@ -540,12 +538,12 @@ Value * BlockStatAST::codegen()
 	if (!ret)
 		return nullptr;
 
-	// É¾³ıµ±Ç°×÷ÓÃÓòÖĞµÄËùÓĞµÄ±äÁ¿
+	// åˆ é™¤å½“å‰ä½œç”¨åŸŸä¸­çš„æ‰€æœ‰çš„å˜é‡
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
-		// »Ö¸´Ô­À´µÄÖµ
+		// æ¢å¤åŸæ¥çš„å€¼
 		NamedValues[VarNames[i].first] = OldBindings[i];
 
-	// ·µ»ØBody²¿·ÖµÄ¼ÆËã½á¹û
+	// è¿”å›Bodyéƒ¨åˆ†çš„è®¡ç®—ç»“æœ
 	return ret;
 
 

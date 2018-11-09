@@ -236,6 +236,8 @@ class ContinueStatAST : public StatAST {
 	Value *codegen() override;
 };
 class IfStatAST : public StatAST {
+    //condition's value
+    std::string VarName;
 	std::unique_ptr<ExprAST> IfCondition;
 	std::unique_ptr<StatAST> ThenStat;
 	std::unique_ptr<StatAST> ElseStat;
@@ -248,7 +250,7 @@ public:
 	Value *codegen() override;
 };
 class WhileStatAST : public StatAST {
-    //i's value
+    //condition's value
     std::string VarName;
 	std::unique_ptr<ExprAST> WhileCondition;
 	std::unique_ptr<StatAST> DoStat;
