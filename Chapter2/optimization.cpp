@@ -1,13 +1,13 @@
 #pragma once
 #include "Global.h"
-#include "llvm/Transforms/InstCombine/InstCombine.h"
+//#include "llvm/Transforms/InstCombine/InstCombine.h"
 void InitializeModuleAndPassManager() {
 	// Open a new module.
 	TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
-	TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
+	//TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
 
 	// Create a new pass manager attached to it.
-	TheFPM = llvm::make_unique<legacy::FunctionPassManager>(TheModule.get());
+	//TheFPM = llvm::make_unique<legacy::FunctionPassManager>(TheModule.get());
 
 	// Do simple "peephole" optimizations and bit-twiddling optzns.
 /*	TheFPM->add(createInstructionCombiningPass());
@@ -18,7 +18,7 @@ void InitializeModuleAndPassManager() {
 	// Simplify the control flow graph (deleting unreachable blocks, etc).
 	TheFPM->add(createCFGSimplificationPass());*/
 
-	TheFPM->doInitialization();
+	//TheFPM->doInitialization();
 }
 Function *getFunction(std::string Name) {
 	// First, see if the function has already been added to the current module.

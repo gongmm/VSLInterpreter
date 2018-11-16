@@ -98,8 +98,8 @@ void HandleDefinition() {
 		  FnIR->print(errs());
 		  fprintf(stderr, "\n");
 		  //将函数生成code后初始化Module和PassManager
-		  TheJIT->addModule(std::move(TheModule));
-		  InitializeModuleAndPassManager();
+		  //TheJIT->addModule(std::move(TheModule));
+		  //InitializeModuleAndPassManager();
 		  if (hasMainFunction&&MainLackOfProtos.size() == 0) {
 			  processMain();
 			  hasMainFunction = false;

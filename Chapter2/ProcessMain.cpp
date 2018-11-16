@@ -23,13 +23,17 @@ Function *getLackFunction(std::string Name) {
 			 //InitializeModuleAndPassManager();
 
 			 // Search the JIT for the __anon_expr symbol.
-			 auto ExprSymbol = TheJIT->findSymbol("main");
-			 assert(ExprSymbol && "Function not found");
+			//ÔÝÊ±×¢ÊÍ
+			 // auto ExprSymbol = TheJIT->findSymbol("main");
+			 //ÔÝÊ±×¢ÊÍ
+			// assert(ExprSymbol && "Function not found");
 
 			 // Get the symbol's address and cast it to the right type (takes no
 			 // arguments, returns a double) so we can call it as a native function.
-			 double(*FP)() = (double(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
-			 fprintf(stderr, "Evaluated to %f\n", FP());
+			 //ÔÝÊ±×¢ÊÍ
+			 //double(*FP)() = (double(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
+			 //ÔÝÊ±×¢ÊÍ
+			 //fprintf(stderr, "Evaluated to %f\n", FP());
 
 			 // Delete the anonymous expression module from the JIT.
 			 //TheJIT->removeModule(H);
