@@ -3,6 +3,10 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/IR/DIBuilder.h"
+#include "llvm/Transforms/Scalar.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -34,15 +38,34 @@
 #include <vector>
 
 using namespace llvm;
-//using namespace llvm::orc;
 using namespace llvm::sys;
+
+struct SourceLocation {
+    int Line;
+    int Col;
+};
+
+static SourceLocation CurLoc;
+static SourceLocation LexLoc = {1, 0};
+
+
+raw_ostream &indent(raw_ostream &O, int size) {
+    return O << std::string(size, ' ');
+}
 
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
+  SourceLocation Loc;
 public:
+  ExprAST(SourceLocation Loc = CurLoc) : Loc(Loc) {}
   virtual ~ExprAST() = default;
 
   virtual Value *codegen() = 0;
+  int getLine() const { return Loc.Line; }
+  int getCol() const { return Loc.Col; }
+  virtual raw_ostream &dump(raw_ostream &out, int ind) {
+        return out << ':' << getLine() << ':' << getCol() << '\n';
+    }
 };
 
 /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -51,7 +74,9 @@ class NumberExprAST : public ExprAST {
 
 public:
   NumberExprAST(double Val) : Val(Val) {}
-
+  raw_ostream &dump(raw_ostream &out, int ind) override {
+        return ExprAST::dump(out << Val, ind);
+    }
   Value *codegen() override;
 };
 

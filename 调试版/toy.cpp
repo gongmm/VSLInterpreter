@@ -3,7 +3,7 @@
 #include <fstream>
 
 using namespace llvm;
-using namespace llvm::sys;
+
 
 
 /// top ::= definition | external | expression | ';'
@@ -31,9 +31,9 @@ void MainLoop() {
 
 int main() {
 	//初始化
-	//InitializeNativeTarget();
-	//InitializeNativeTargetAsmPrinter();
-	//InitializeNativeTargetAsmParser();
+	InitializeNativeTarget();
+	InitializeNativeTargetAsmPrinter();
+	InitializeNativeTargetAsmParser();
   // Install standard binary operators.
   // 1 是最小的优先级
   BinopPrecedence['='] = 2;
@@ -48,7 +48,7 @@ int main() {
   fprintf(stderr, "ready> ");
   getNextToken();
   //初始化TheJIT和优化器
- // TheJIT = llvm::make_unique<KaleidoscopeJIT>();
+  TheJIT = llvm::make_unique<KaleidoscopeJIT>();
 
   InitializeModuleAndPassManager();
   // Make the module, which holds all the code.
