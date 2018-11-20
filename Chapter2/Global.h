@@ -5,6 +5,7 @@
 #include <map>
 
 using namespace llvm;
+using namespace llvm::orc;
 using namespace llvm::sys;
 
 /********************************
@@ -41,6 +42,66 @@ enum Token {
 	BINARY = -18,
 	UNARY = -19
 };
+std::string getTokName(int Tok) {
+    switch (Tok) {
+        case TOKEOF:
+            return "TOKEOF";
+        case TEXT:
+            return "TEXT";
+        case ASSIGN_SYMBOL:
+            return "ASSIGN_SYMBOL";
+        case FUNC:
+            return "FUNC";
+        case INTEGER:
+            return "INTEGER";
+        case IF:
+            return "IF";
+        case THEN:
+            return "THEN";
+        case ELSE:
+            return "ELSE";
+        case WHILE:
+            return "WHILE";
+        case FI:
+            return "FI";
+        case BINARY:
+            return "BINARY";
+        case UNARY:
+            return "UNARY";
+        case DONE:
+            return "DONE";
+        case VARIABLE:
+            return "VARIABLE";
+        case CONTINUE:
+            return "CONTINUE";
+        case RETURN:
+            return "RETURN";
+    }
+    return std::string(1, (char)Tok);
+}
+static LLVMContext TheContext;
+static IRBuilder<> Builder(TheContext);
+
+struct DebugInfo {
+    DICompileUnit *TheCU;
+    DIType *DblTy;
+    std::vector<DIScope *> LexicalBlocks;
+    
+    void emitLocation(ExprAST *AST);
+    DIType *getDoubleTy();
+} KSDbgInfo;
+
+static int advance() {
+    int LastChar = getchar();
+    
+    if (LastChar == '\n' || LastChar == '\r') {
+        LexLoc.Line++;
+        LexLoc.Col = 0;
+    } else
+        LexLoc.Col++;
+    return LastChar;
+}
+
 
 extern bool recWhitespace(int LastChar);
 extern int recKeyword();

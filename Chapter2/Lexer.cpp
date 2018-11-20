@@ -12,13 +12,13 @@ using namespace std;
 //===----------------------------------------------------------------------===//
 
 
-/// ÅĞ¶ÏÊÇ·ñÊÇ¿Õ¸ñ¡¢\t»ò\n
+/// åˆ¤æ–­æ˜¯å¦æ˜¯ç©ºæ ¼ã€\tæˆ–\n
 bool recWhitespace(int LastChar) {
 	if (LastChar == ' ' || LastChar == '\t' || LastChar == '\n')
 		return true;
 	return false;
 }
-/// ÅĞ¶ÏÊÇÄÄÒ»¸ö±êÊ¶·û
+/// åˆ¤æ–­æ˜¯å“ªä¸€ä¸ªæ ‡è¯†ç¬¦
 int recKeyword() {
 	if (IdentifierStr == "FUNC")
 		return FUNC;
@@ -56,23 +56,24 @@ int gettok() {
 	IdentifierStr = "";
 	NumVal = 0;
 	Text = "";
-	//Ê¶±ğ·Ö¸ô·û²¢Ìø¹ı
+	//è¯†åˆ«åˆ†éš”ç¬¦å¹¶è·³è¿‡
 	while (recWhitespace(LastChar)) {
-		LastChar = getchar();
+		LastChar = advance();
 	}
-	//Ê¶±ğ×¢ÊÍ
+    CurLoc = LexLoc;
+	//è”µdetify comment
 	if (LastChar == '/') {
-		LastChar = getchar();
+		LastChar = advance();
           if (LastChar == '/')
             while (LastChar != '\n')
-              LastChar = getchar();
+              LastChar = advance();
           else
             return '/';
 	}
-	//Ê¶±ğ±êÊ¶·û
+	//è¯†åˆ«æ ‡è¯†ç¬¦
 	if (isalpha(LastChar)) {
 		IdentifierStr += LastChar;
-		while (isalnum(LastChar = getchar())) {
+		while (isalnum(LastChar = advance())) {
 			IdentifierStr += LastChar;
 		}
 		int keyword = recKeyword();
@@ -80,37 +81,37 @@ int gettok() {
 			return keyword;
 		return VARIABLE;
 	}
-	//Ê¶±ğÊı×Ö
+	//è¯†åˆ«æ•°å­—
 	if (isdigit(LastChar)) {
 		std::string NumStr;
 		do {
 			NumStr += LastChar;
-			LastChar = getchar();
+			LastChar = advance();
 		} while (isdigit(LastChar) || LastChar == '.');
 
 		std::regex re("(.+\..+){2,}");
 		if (regex_match(NumStr, re)) {
-			cout << "º¬·Ç·¨´Ê£º" << NumStr << endl;
+			cout << "å«éæ³•è¯ï¼š" << NumStr << endl;
 			return 0;
 		}
 		NumVal = strtod(NumStr.c_str(), 0);
 		return INTEGER;
 	}
-	//Ê¶±ğtext
+	//è¯†åˆ«text
 	if (LastChar == '"') {
-		LastChar = getchar();
+		LastChar = advance();
 		while (LastChar != '"') {
 			Text += LastChar;
-			LastChar = getchar();
+			LastChar = advance();
 		}
-        LastChar = getchar();
+        LastChar = advance();
 		return TEXT;
 	}
-	//Ê¶±ğ¸³Öµ·ûºÅ
+	//è¯†åˆ«èµ‹å€¼ç¬¦å·
 	if (LastChar == ':') {
-		LastChar = getchar();
+		LastChar = advance();
           if (LastChar == '=') {
-			  LastChar = getchar();
+			  LastChar = advance();
 			  return ASSIGN_SYMBOL;
           }
 			
@@ -118,9 +119,9 @@ int gettok() {
 	if (LastChar == EOF)
 		return TOKEOF;
 
-	// ·ñÔòÖ»ÊÇ·µ»Ø×Ö·ûµÄasciiÂë
+	// å¦åˆ™åªæ˜¯è¿”å›å­—ç¬¦çš„asciiç 
 	int ThisChar = LastChar;
-	LastChar = getchar();
+	LastChar = advance();
 	return ThisChar;
 }
 
