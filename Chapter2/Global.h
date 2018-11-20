@@ -1,11 +1,11 @@
 #ifndef  GLOBAL
 #define GLOBAL
 #include "AST.h"
-#include "../include/KaleidoscopeJIT.h"
+//#include "../include/KaleidoscopeJIT.h"
 #include <map>
 
 using namespace llvm;
-using namespace llvm::orc;
+using namespace llvm::sys;
 
 /********************************
 *                               *
@@ -94,8 +94,8 @@ extern std::map<std::string, AllocaInst *> NamedValues;
 //===----------------------------------------------------------------------===//
 // JIT & Optimizer Support
 //===----------------------------------------------------------------------===//
-extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
+//extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+//extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 //optimize
 void InitializeModuleAndPassManager();

@@ -4,7 +4,7 @@
 
 
 using namespace llvm;
-
+using namespace llvm::sys;
 //===----------------------------------------------------------------------===//
 // Code Generation
 //===----------------------------------------------------------------------===//
@@ -219,7 +219,7 @@ Function *PrototypeAST::codegen() {
 
 	// create function
 	Function *F =
-		Function::Create(FT, Function::InternalLinkage, Name, TheModule.get());
+		Function::Create(FT, Function::ExternalLinkage, Name, TheModule.get());
 
 	// Set names for all arguments.
 	unsigned Idx = 0;
@@ -296,7 +296,7 @@ Function *FunctionAST::codegen() {
 		verifyFunction(*TheFunction);
 
 		// Run the optimizer on the function.
-		TheFPM->run(*TheFunction);
+		//TheFPM->run(*TheFunction);
 
 		//¸üĞÂisMainÖµ
 		if (P.getName() == "main") {
