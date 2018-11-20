@@ -49,7 +49,7 @@ static SourceLocation CurLoc;
 static SourceLocation LexLoc = {1, 0};
 
 
-raw_ostream &indent(raw_ostream &O, int size) {
+raw_ostream &debugIndent(raw_ostream &O, int size) {
     return O << std::string(size, ' ');
 }
 
@@ -85,6 +85,9 @@ class VariableExprAST : public ExprAST {
   std::string Name;
 
 public:
+  VariableExprAST(SourceLocation Loc, const std::string &Name)
+    : ExprAST(Loc), Name(Name) {}
+    const std::string &getName() const { return Name; }
   VariableExprAST(const std::string &Name) : Name(Name) {}
 
   std::string getName() {
@@ -92,6 +95,9 @@ public:
   }
 
   Value *codegen() override;
+  raw_ostream &dump(raw_ostream &out, int ind) override {
+        return ExprAST::dump(out << Name, ind);
+    }
 };
 
 /// BinaryExprAST - Expression class for a binary operator.
@@ -100,11 +106,17 @@ class BinaryExprAST : public ExprAST {
   std::unique_ptr<ExprAST> LHS, RHS;
 
 public:
-  BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
+  BinaryExprAST(SourceLocation Loc,char Op, std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS)
-      : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+      : ExprAST(Loc),Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 
   Value *codegen() override;
+  raw_ostream &dump(raw_ostream &out, int ind) override {
+        ExprAST::dump(out << "binary" << Op, ind);
+        LHS->dump(debugIndent(out, ind) << "LHS:", ind + 1);
+        RHS->dump(debugIndent(out, ind) << "RHS:", ind + 1);
+        return out;
+    }
 };
 
 /// UnaryExprAST - Expression class for a unary operator.
@@ -117,6 +129,11 @@ public:
       : Opcode(Opcode), Operand(std::move(Operand)) {}
 
   Value *codegen() override;
+  raw_ostream &dump(raw_ostream &out, int ind) override {
+        ExprAST::dump(out << "unary" << Opcode, ind);
+        Operand->dump(out, ind + 1);
+        return out;
+    }
 };
 
 /// CallExprAST - Expression class for function calls.
@@ -125,11 +142,17 @@ class CallExprAST : public ExprAST {
   std::vector<std::unique_ptr<ExprAST>> Args;
 
 public:
-  CallExprAST(const std::string &Callee,
+  CallExprAST(SourceLocation Loc,const std::string &Callee,
               std::vector<std::unique_ptr<ExprAST>> Args)
-      : Callee(Callee), Args(std::move(Args)) {}
+      : ExprAST(Loc), Callee(Callee), Args(std::move(Args)) {}
 
   Value *codegen() override;
+  raw_ostream &dump(raw_ostream &out, int ind) override {
+        ExprAST::dump(out << "call " << Callee, ind);
+        for (const auto &Arg : Args)
+            Arg->dump(debugIndent(out, ind + 1), ind + 1);
+        return out;
+    }
 };
 class TextExprAST : public ExprAST {
 	std::string Text;
@@ -139,11 +162,24 @@ public:
 		: Text(Text) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        return ExprAST::dump(out<<"text "<<Text, ind);
+    }
 };
 
-class StatAST;
-
-
+class StatAST{
+    SourceLocation Loc;
+public:
+    StatAST(SourceLocation Loc = CurLoc) : Loc(Loc) {}
+    virtual ~StatAST()= default;
+    
+    virtual Value *codegen() = 0;
+    int getLine() const { return Loc.Line; }
+    int getCol() const { return Loc.Col; }
+    virtual raw_ostream &dump(raw_ostream &out, int ind) {
+        return out << ':' << getLine() << ':' << getCol() << '\n';
+    }
+};
 
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
@@ -153,13 +189,12 @@ class PrototypeAST {
   std::vector<std::string> Args;
   bool IsOperator; //是否是一个操作符
   unsigned Precedence; //当该原型为一个双目操作符时，该属性存储其优先级
-
+  int Line;
 public:
-  PrototypeAST(const std::string &Name, std::vector<std::string> Args,bool IsOperator=false,unsigned Precedence = 0)
-      : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence) {}
+  PrototypeAST(SourceLocation Loc, const std::string &Name, std::vector<std::string> Args,bool IsOperator=false, unsigned Precedence = 0)
+      : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence), Line(Loc.Line) {}
 
   Function *codegen();
-
   const std::string &getName() const { return Name; }
    std::vector<std::string> getArgs()const { return Args; }
    void setArgs(std::vector<std::string> args) {
@@ -180,7 +215,7 @@ public:
   }
 
   unsigned getBinaryPrecedence() const { return Precedence; }
-
+  int getLine() const { return Line; }
   
 };
 
@@ -195,42 +230,60 @@ public:
       : Proto(std::move(Proto)), Body(std::move(Body)) {}
 
   Function *codegen();
+  raw_ostream &dump(raw_ostream &out, int ind) {
+        debugIndent(out, ind) << "FunctionAST\n";
+        ++ind;
+        debugIndent(out, ind) << "Body:";
+        return Body ? Body->dump(out, ind) : out << "null\n";
+    }
 };
 
-/// StatementAST
-//新定义Statement新添加结构定义
-class StatAST {
-public:
-	virtual ~StatAST() = default;
-
-	virtual Value *codegen() = 0;
-};
-
+//statements' AST
 /// NumberExprAST - Expression class for numeric literals like "1.0".
 class AssignStatAST : public StatAST {
 	std::string Name;
 	std::unique_ptr<ExprAST> Val;
 public:
-	AssignStatAST(const std::string &Name, std::unique_ptr<ExprAST> Val) : Name(Name), Val(std::move(Val)) {}
+	AssignStatAST(SourceLocation Loc, const std::string &Name, std::unique_ptr<ExprAST> Val) : StatAST(Loc), Name(Name), Val(std::move(Val)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"assign "<<Name, ind);
+        Val->dump(out,ind+1);
+        return out;
+    }
 };
 class ReturnStatAST : public StatAST {
 	std::unique_ptr<ExprAST> Body;
 public:
-	ReturnStatAST(std::unique_ptr<ExprAST> Body) : Body(std::move(Body)) {}
+	ReturnStatAST(SourceLocation Loc, std::unique_ptr<ExprAST> Body) : StatAST(Loc),Body(std::move(Body)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"return", ind);
+        Body->dump(debugIndent(out, ind) <<"Body: ", ind+1);
+        return out;
+    }
 };
 class PrintStatAST : public StatAST {
 	std::vector<std::unique_ptr<ExprAST>> Texts;
 public:
-	PrintStatAST(std::vector<std::unique_ptr<ExprAST>> Texts) : Texts(std::move(Texts)) {}
+	PrintStatAST(SourceLocation Loc,std::vector<std::unique_ptr<ExprAST>> Texts) : StatAST(Loc), Texts(std::move(Texts)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"print ", ind);
+        for (const auto &Text : Texts)
+            Text->dump(debugIndent(out, ind + 1), ind + 1);
+        return out;
+    }
 };
 class ContinueStatAST : public StatAST {
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"continue ", ind);
+        return out;
+    }
 };
 class IfStatAST : public StatAST {
     //condition's value
@@ -239,12 +292,19 @@ class IfStatAST : public StatAST {
 	std::unique_ptr<StatAST> ThenStat;
 	std::unique_ptr<StatAST> ElseStat;
 public:
-	IfStatAST(std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat, std::unique_ptr<StatAST> ElseStat)
-		: IfCondition(std::move(IfCondition)), ThenStat(std::move(ThenStat)), ElseStat(std::move(ElseStat)) {}
-	IfStatAST(std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat) : IfCondition(std::move(IfCondition)),
+	IfStatAST(SourceLocation Loc,std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat, std::unique_ptr<StatAST> ElseStat)
+		: StatAST(Loc), IfCondition(std::move(IfCondition)), ThenStat(std::move(ThenStat)), ElseStat(std::move(ElseStat)) {}
+	IfStatAST(SourceLocation Loc,std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat) : StatAST(Loc), IfCondition(std::move(IfCondition)),
 		ThenStat(std::move(ThenStat)), ElseStat(nullptr) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"if "<<VarName, ind);
+        IfCondition->dump(debugIndent(out, ind) << "Cond:", ind + 1);
+        ThenStat->dump(debugIndent(out, ind) << "Then:", ind + 1);
+        ElseStat->dump(debugIndent(out, ind) << "Else:", ind + 1);
+        return out;
+    }
 };
 class WhileStatAST : public StatAST {
     //condition's value
@@ -252,10 +312,16 @@ class WhileStatAST : public StatAST {
 	std::unique_ptr<ExprAST> WhileCondition;
 	std::unique_ptr<StatAST> DoStat;
 public:
-	WhileStatAST(std::unique_ptr<ExprAST> WhileCondition, std::unique_ptr<StatAST> DoStat)
-		: WhileCondition(std::move(WhileCondition)), DoStat(std::move(DoStat)) {}
+	WhileStatAST(SourceLocation Loc, std::unique_ptr<ExprAST> WhileCondition, std::unique_ptr<StatAST> DoStat)
+		:StatAST(Loc), WhileCondition(std::move(WhileCondition)), DoStat(std::move(DoStat)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"while "<<VarName, ind);
+        WhileCondition->dump(debugIndent(out, ind) << "WhileCond:", ind + 1);
+        DoStat->dump(debugIndent(out, ind) << "DoStat:", ind + 1);
+        return out;
+    }
 };
 class BlockStatAST : public StatAST {
 	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
@@ -264,14 +330,31 @@ class BlockStatAST : public StatAST {
 	std::map<std::string, llvm::Value*> locals;
 public:
 	BlockStatAST(
-		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+		SourceLocation Loc, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
 		std::vector<std::unique_ptr<StatAST>>)
-		: VarNames(std::move(VarNames)), Statements(std::move(Statements)) {}
+		: StatAST(Loc), VarNames(std::move(VarNames)), Statements(std::move(Statements)) {}
 
-	BlockStatAST(std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
-		: Variables(std::move(Variables)), Statements(std::move(Statements)) {}
+	BlockStatAST(SourceLocation Loc, std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
+		: StatAST(Loc), Variables(std::move(Variables)), Statements(std::move(Statements)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"block ", ind);
+        for (auto &VarName : VarNames){
+            StatAST::dump(out<<VarName.first, ind);
+            VarName.second->dump(debugIndent(out, ind + 1), ind + 1);
+        }
+        for (const auto &Variable : Variables)
+            Variable->dump(debugIndent(out, ind + 1), ind + 1);
+        
+        for (const auto &statement : Statements)
+            statement->dump(debugIndent(out, ind + 1), ind + 1);
+       
+        for (auto &local : locals){
+            StatAST::dump(out<<local.first<<" "<<local.second, ind);
+        }
+        return out;
+    }
 };
 
 
@@ -281,12 +364,20 @@ class VarExprAST : public StatAST {
 	std::unique_ptr<StatAST> Body;
 
 public:
-	VarExprAST(
-		std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+	VarExprAST(SourceLocation Loc, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
 		std::unique_ptr<StatAST> Body)
-		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+		: StatAST(Loc),VarNames(std::move(VarNames)), Body(std::move(Body)) {}
 
 	Value *codegen() override;
+    raw_ostream &dump(raw_ostream &out, int ind) override {
+        StatAST::dump(out<<"var ", ind);
+        for (auto &VarName : VarNames){
+            StatAST::dump(out<<VarName.first, ind);
+            VarName.second->dump(debugIndent(out, ind + 1), ind + 1);
+        }
+        Body->dump(debugIndent(out, ind+1), ind+1);
+        return out;
+    }
 };
 
 
