@@ -68,7 +68,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 	if (CurTok != VARIABLE)
 		return LogErrorS("expected identifier after var");
 
-	while (true) {
+	while (1) {
 		std::string Name = IdentifierStr;
 		getNextToken(); // eat identifier.
 
@@ -161,6 +161,8 @@ std::unique_ptr<StatAST> ParsePrintStat() {
 }
 //If Statement
 std::unique_ptr<StatAST> ParseIfStat() {
+    SourceLocation IfLoc = CurLoc;
+    
 	int indentBefore = indent;
 	print("if-stat\n");
 	indent++;
@@ -183,7 +185,7 @@ std::unique_ptr<StatAST> ParseIfStat() {
 		}
 		getNextToken();
 		indent = indentBefore;
-		return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat));
+		return llvm::make_unique<IfStatAST>(IfLoc, std::move(IfCondition), std::move(ThenStat));
 	}
 	print("ELSE statement\n");
 	getNextToken();

@@ -1,7 +1,7 @@
 #ifndef  GLOBAL
 #define GLOBAL
 #include "AST.h"
-//#include "../include/KaleidoscopeJIT.h"
+#include "../include/KaleidoscopeJIT.h"
 #include <map>
 
 using namespace llvm;
@@ -79,6 +79,7 @@ std::string getTokName(int Tok) {
     }
     return std::string(1, (char)Tok);
 }
+
 static LLVMContext TheContext;
 static IRBuilder<> Builder(TheContext);
 
@@ -88,8 +89,64 @@ struct DebugInfo {
     std::vector<DIScope *> LexicalBlocks;
     
     void emitLocation(ExprAST *AST);
+    void emitLocation(StatAST *AST);
     DIType *getDoubleTy();
 } KSDbgInfo;
+
+//===----------------------------------------------------------------------===//
+// Debug Info Support
+//===----------------------------------------------------------------------===//
+
+static std::unique_ptr<DIBuilder> DBuilder;
+
+DIType *DebugInfo::getDoubleTy() {
+    if (DblTy)
+        return DblTy;
+    
+    DblTy = DBuilder->createBasicType("double", 64, dwarf::DW_ATE_float);
+    return DblTy;
+}
+
+
+
+void DebugInfo::emitLocation(ExprAST *AST) {
+    if (!AST)
+        return Builder.SetCurrentDebugLocation(DebugLoc());
+    DIScope *Scope;
+    if (LexicalBlocks.empty())
+        Scope = TheCU;
+    else
+        Scope = LexicalBlocks.back();
+    Builder.SetCurrentDebugLocation(
+                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
+}
+
+void DebugInfo::emitLocation(StatAST *AST){
+    if (!AST)
+        return Builder.SetCurrentDebugLocation(DebugLoc());
+    DIScope *Scope;
+    if (LexicalBlocks.empty())
+        Scope = TheCU;
+    else
+        Scope = LexicalBlocks.back();
+    Builder.SetCurrentDebugLocation(
+                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
+}
+
+
+static DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
+    SmallVector<Metadata *, 8> EltTys;
+    DIType *DblTy = KSDbgInfo.getDoubleTy();
+    
+    // Add the result type.
+    EltTys.push_back(DblTy);
+    
+    for (unsigned i = 0, e = NumArgs; i != e; ++i)
+        EltTys.push_back(DblTy);
+    
+    return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
+}
+
 
 static int advance() {
     int LastChar = getchar();
@@ -155,11 +212,11 @@ extern std::map<std::string, AllocaInst *> NamedValues;
 //===----------------------------------------------------------------------===//
 // JIT & Optimizer Support
 //===----------------------------------------------------------------------===//
-//extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-//extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
+extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 //optimize
-void InitializeModuleAndPassManager();
+extern void InitializeModule();
 Function *getFunction(std::string Name);
 //support main()
 extern bool isMain;

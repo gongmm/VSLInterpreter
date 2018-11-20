@@ -9,7 +9,8 @@
 ///   ::= id '(' id* ')'
 std::unique_ptr<PrototypeAST> ParsePrototype() {
   std::string FnName;
-
+  SourceLocation FnLoc = CurLoc;
+    
   unsigned Kind = 0; // 0 为函数, 1 为单目操作符, 2 为双目操作符.
   unsigned BinaryPrecedence = 30; //存储操作符优先级
 
@@ -70,7 +71,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
   if (Kind && ArgNames.size() != Kind)
     return LogErrorP("Invalid number of operands for operator");
 
-  return llvm::make_unique<PrototypeAST>(FnName, std::move(ArgNames), Kind != 0,
+  return llvm::make_unique<PrototypeAST>(FnLoc,FnName, std::move(ArgNames), Kind != 0,
                                          BinaryPrecedence);
 }
 
@@ -93,13 +94,9 @@ void HandleDefinition() {
   if (auto FnAST = ParseDefinition()) {
     //fprintf(stderr, "Parsed a function definition.\n");
     /*outputToTxt("FUNCTION.");*/
-	  if (auto *FnIR = FnAST->codegen()) {
-		  fprintf(stderr, "Read function definition:");
-		  FnIR->print(errs());
-		  fprintf(stderr, "\n");
-		  //将函数生成code后初始化Module和PassManager
-		  //TheJIT->addModule(std::move(TheModule));
-		  //InitializeModuleAndPassManager();
+      if (!FnAST->codegen())
+          fprintf(stderr, "Error reading function definition:");
+	  else{
 		  if (hasMainFunction&&MainLackOfProtos.size() == 0) {
 			  processMain();
 			  hasMainFunction = false;
@@ -107,6 +104,6 @@ void HandleDefinition() {
 	  }
   } else {
     // Skip token for error recovery.
-//    getNextToken();
+    //getNextToken();
   }
 }

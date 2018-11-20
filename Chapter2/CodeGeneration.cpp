@@ -35,6 +35,7 @@ static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 
 Value *NumberExprAST::codegen() {
 	//return ConstantInt::get(Builder.getInt32Ty(), this->Val, true);
+    KSDbgInfo.emitLocation(this);
 	return ConstantFP::get(TheContext, APFloat(Val));
 }
 
@@ -43,7 +44,7 @@ Value *VariableExprAST::codegen() {
 	Value *V = NamedValues[Name];
 	if (!V)
 		return LogErrorV("Unknown variable name");
-
+    KSDbgInfo.emitLocation(this);
 	// Load the value.
 	return Builder.CreateLoad(V, Name.c_str());
 }
@@ -52,6 +53,7 @@ Value *VariableExprAST::codegen() {
 Value * TextExprAST::codegen()
 {
 	//return Constant::get(TheContext, StringRef(Text));
+    KSDbgInfo.emitLocation(this);
 	return nullptr;
 	
 }
@@ -86,7 +88,7 @@ Value *VarExprAST::codegen() {
 		// 记录此次绑定的值
 		NamedValues[VarName] = Alloca;
 	}
-
+    KSDbgInfo.emitLocation(this);
 	// 生成body部分的代码, 现在所有定义的变量均在作用域中
 	Value *BodyVal = Body->codegen();
 	if (!BodyVal)
@@ -110,13 +112,14 @@ Value *UnaryExprAST::codegen() {
   Function *F = getFunction(std::string("unary") + Opcode);
   if (!F)
     return LogErrorV("Unknown unary operator");
-
+  KSDbgInfo.emitLocation(this);
   return Builder.CreateCall(
       F, OperandV,
       "unop"); //调用操作符对应函数，返回函数处理过的数值，完成单目操作符对表达式的运算
 }
 
 Value *BinaryExprAST::codegen() {
+    KSDbgInfo.emitLocation(this);
 	// '=' special handle, LHS isn't taken as expr
 	if (Op == '=') {
 		// 赋值操作中我们将LHS当作标识符
@@ -172,6 +175,7 @@ Value *BinaryExprAST::codegen() {
 }
 
 Value *CallExprAST::codegen() {
+    KSDbgInfo.emitLocation(this);
 	//修改前
 	/*// Look up the name in the global module table.
 	Function *CalleeF = TheModule->getFunction(Callee);*/
@@ -275,11 +279,41 @@ Function *FunctionAST::codegen() {
 	BasicBlock *BB = BasicBlock::Create(TheContext, "entry", TheFunction);
 	Builder.SetInsertPoint(BB);
 
+    // Create a subprogram DIE for this function.
+    DIFile *Unit = DBuilder->createFile(KSDbgInfo.TheCU->getFilename(),
+                                        KSDbgInfo.TheCU->getDirectory());
+    DIScope *FContext = Unit;
+    unsigned LineNo = P.getLine();
+    unsigned ScopeLine = LineNo;
+    DISubprogram *SP = DBuilder->createFunction(
+                                                FContext, P.getName(), StringRef(), Unit, LineNo,
+                                                CreateFunctionType(TheFunction->arg_size(), Unit),
+                                                false /* internal linkage */, true /* definition */, ScopeLine,
+                                                DINode::FlagPrototyped, false);
+    TheFunction->setSubprogram(SP);
+    
+    // Push the current scope.
+    KSDbgInfo.LexicalBlocks.push_back(SP);
+    
+    // Unset the location for the prologue emission (leading instructions with no
+    // location in a function are considered part of the prologue and the debugger
+    // will run past them when breaking on a function)
+    ExprAST* exprnull=nullptr;
+    KSDbgInfo.emitLocation(exprnull);
 	// Record the function arguments in the NamedValues map.
 	NamedValues.clear();
+    unsigned ArgIdx = 0;
 	for (auto &Arg : TheFunction->args()) {
 		// Create an alloca for this variable.
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+        // Create a debug descriptor for the variable.
+        DILocalVariable *D = DBuilder->createParameterVariable(
+                                                               SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
+                                                               true);
+        
+        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
+                                DebugLoc::get(LineNo, 0, SP),
+                                Builder.GetInsertBlock());
 
 		// Store the initial value into the alloca.
 		Builder.CreateStore(&Arg, Alloca);
@@ -287,10 +321,14 @@ Function *FunctionAST::codegen() {
 		// Add arguments to variable symbol table.
 		NamedValues[Arg.getName()] = Alloca;
 	}
-
+    KSDbgInfo.emitLocation(Body.get());
+    
 	if (Value *RetVal = Body->codegen()) {
 		// Finish off the function.
 		Builder.CreateRet(RetVal);
+        
+        // Pop off the lexical block for the function.
+        KSDbgInfo.LexicalBlocks.pop_back();
 
 		// Validate the generated code, checking for consistency.
 		verifyFunction(*TheFunction);
@@ -309,6 +347,12 @@ Function *FunctionAST::codegen() {
 
 	// Error reading body, remove function.
 	TheFunction->eraseFromParent();
+    if (P.isBinaryOp())
+        BinopPrecedence.erase(Proto->getOperatorName());
+    
+    // Pop off the lexical block for the function since we added it
+    // unconditionally.
+    KSDbgInfo.LexicalBlocks.pop_back();
 	return nullptr;
 }
 
@@ -329,7 +373,7 @@ Value * AssignStatAST::codegen()
 	}
 	*/
 
-
+    KSDbgInfo.emitLocation(this);
 	// Look up the name.
 	AllocaInst *Alloca = NamedValues[Name];
 	
@@ -358,12 +402,14 @@ Value * AssignStatAST::codegen()
 
 Value * ReturnStatAST::codegen()
 {
+    KSDbgInfo.emitLocation(this);
 	Value * val = Body->codegen();
 	return val;
 }
 
 Value * PrintStatAST::codegen()
 {
+    KSDbgInfo.emitLocation(this);
 	return nullptr;
 }
 
@@ -375,6 +421,8 @@ Value * IfStatAST::codegen()
 
       // Create an alloca for the variable in the entry block.
     AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+    
+    KSDbgInfo.emitLocation(this);
     
     Value *OldVal=Builder.CreateLoad(NamedValues[VarName]);
     NamedValues[VarName]=Alloca;
@@ -437,7 +485,7 @@ Value * IfStatAST::codegen()
 
 Value * WhileStatAST::codegen()
 {
-	
+	KSDbgInfo.emitLocation(this);
 	//处理循环控制条件
 	Value *StartVal = WhileCondition->codegen();
 	if (!StartVal)
@@ -501,6 +549,7 @@ Value * WhileStatAST::codegen()
 
 Value * BlockStatAST::codegen()
 {
+    KSDbgInfo.emitLocation(this);
 	std::vector<AllocaInst *> OldBindings;
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
@@ -600,6 +649,7 @@ Value * BlockStatAST::codegen()
 
 Value * ContinueStatAST::codegen()
 {
+    KSDbgInfo.emitLocation(this);
 	return nullptr;
 }
 

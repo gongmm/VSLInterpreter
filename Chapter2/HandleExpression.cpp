@@ -68,18 +68,18 @@ std::unique_ptr<ExprAST> ParseMinusExpr() {
 ///   ::= identifier '(' expression* ')'
 std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	std::string IdName = IdentifierStr;
-
+    SourceLocation LitLoc = CurLoc;
 	getNextToken(); // eat identifier.
 
 	if (CurTok != '('){ // Simple variable ref.
 		print("varible-reference-expression\n");
-		return llvm::make_unique<VariableExprAST>(IdName);
+		return llvm::make_unique<VariableExprAST>(LitLoc, IdName);
 	}
 	// Call.
 	getNextToken(); // eat (
 	std::vector<std::unique_ptr<ExprAST>> Args;
 	if (CurTok != ')') {
-		while (true) {
+		while (1) {
 			if (auto Arg = ParseExpression())
 				Args.push_back(std::move(Arg));
 			else
@@ -97,7 +97,7 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 	// Eat the ')'.
 	getNextToken();
 	print("call-expression\n");
-	return llvm::make_unique<CallExprAST>(IdName, std::move(Args));
+	return llvm::make_unique<CallExprAST>(LitLoc, IdName, std::move(Args));
 }
 
 
@@ -142,7 +142,7 @@ std::unique_ptr<ExprAST> ParseUnary() {
 std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
 	std::unique_ptr<ExprAST> LHS) {
 	// If this is a binop, find its precedence.
-	while (true) {
+	while (1) {
 		int TokPrec = GetTokPrecedence();
 
 		// If this is a binop that binds at least as tightly as the current binop,
@@ -152,6 +152,7 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
 
 		// Okay, we know this is a binop.
 		int BinOp = CurTok;
+        SourceLocation BinLoc = CurLoc;
 		getNextToken(); // eat binop
 
 		// Parse the primary expression after the binary operator.
@@ -171,7 +172,7 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
 
 		// Merge LHS/RHS.
 		LHS =
-			llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
+			llvm::make_unique<BinaryExprAST>(BinLoc, BinOp, std::move(LHS), std::move(RHS));
 	}
 }
 
