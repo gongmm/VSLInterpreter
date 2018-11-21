@@ -106,6 +106,7 @@ std::unique_ptr<StatAST> ParseStatement() {
 
 //Assignment Statement
 std::unique_ptr<StatAST> ParseAssignStat() {
+    SourceLocation AssignLoc = CurLoc;
 	int indentBefore=indent;
 	print("assignment-stat\n");
 	indent++;
@@ -118,23 +119,25 @@ std::unique_ptr<StatAST> ParseAssignStat() {
 	getNextToken();
 	outputToTxt("expression\n");
 	indent++;
-	auto Result= llvm::make_unique<AssignStatAST>(Name, std::move(ParseExpression()));
+	auto Result= llvm::make_unique<AssignStatAST>(AssignLoc,Name, std::move(ParseExpression()));
 	indent =indentBefore;
 	return std::move(Result);
 }
 //Return Statement
 std::unique_ptr<StatAST> ParseReturnStat() {
+     SourceLocation ReturnLoc = CurLoc;
 	int indentBefore = indent;
 	print("return-stat\n");
 	indent++;
 	print("expression\n");
 	indent++;
-	auto Result = llvm::make_unique<ReturnStatAST>(std::move(ParseExpression()));
+	auto Result = llvm::make_unique<ReturnStatAST>(ReturnLoc, std::move(ParseExpression()));
 	indent = indentBefore;
 	return std::move(Result);
 }
 //Print Statement
 std::unique_ptr<StatAST> ParsePrintStat() {
+    SourceLocation PrintLoc = CurLoc;
 	print("print-stat\n");
 	std::vector<std::unique_ptr<ExprAST>> Texts;
 	/*if (CurTok != TEXT)
@@ -156,7 +159,7 @@ std::unique_ptr<StatAST> ParsePrintStat() {
 			 Texts.push_back(std::move(ParseExpression()));
 		 }
 	}
-	auto Result = llvm::make_unique<PrintStatAST>(std::move(Texts));
+	auto Result = llvm::make_unique<PrintStatAST>(PrintLoc,std::move(Texts));
 	return std::move(Result);
 }
 //If Statement
@@ -199,10 +202,11 @@ std::unique_ptr<StatAST> ParseIfStat() {
 	print("FI keyword\n");
 	indent = indentBefore;
 	getNextToken();
-	return llvm::make_unique<IfStatAST>(std::move(IfCondition), std::move(ThenStat), std::move(ElseStat));
+	return llvm::make_unique<IfStatAST>(IfLoc, std::move(IfCondition), std::move(ThenStat), std::move(ElseStat));
 }
 //While Statement
 std::unique_ptr<StatAST> ParseWhileStat() {
+     SourceLocation WhileLoc = CurLoc;
 	int indentBefore = indent;
 	print("while-stat\n");
 	indent++;
@@ -226,10 +230,11 @@ std::unique_ptr<StatAST> ParseWhileStat() {
 	print("DONE keyword\n");
 	indent = indentBefore;
 	getNextToken();
-	return llvm::make_unique<WhileStatAST>(std::move(WhileCondition), std::move(DoStat));
+	return llvm::make_unique<WhileStatAST>(WhileLoc,std::move(WhileCondition), std::move(DoStat));
 }
 //Block Statement
 std::unique_ptr<StatAST> ParseBlockStat() {
+    SourceLocation BlockLoc = CurLoc;
 	int indentBefore = indent;
 	print("block-stat\n");
 	indent++;
@@ -277,5 +282,5 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 	} while (CurTok != '}'&&CurTok!=TOKEOF);
 	indent = indentBefore;
 	getNextToken();
-	return  llvm::make_unique<BlockStatAST>(std::move(variables), std::move(statements));
+	return  llvm::make_unique<BlockStatAST>(BlockLoc,std::move(variables), std::move(statements));
 }

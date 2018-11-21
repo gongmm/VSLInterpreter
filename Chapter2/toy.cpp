@@ -3,7 +3,7 @@
 #include <fstream>
 
 using namespace llvm;
-using namespace llvm::orc;
+//using namespace llvm::orc;
 using namespace llvm::sys;
 
 
@@ -49,9 +49,9 @@ int main() {
   fprintf(stderr, "ready> ");
   getNextToken();
   //初始化TheJIT和优化器
-  TheJIT = llvm::make_unique<KaleidoscopeJIT>();
+  //TheJIT = llvm::make_unique<KaleidoscopeJIT>();
 
-  InitializeModule();
+   InitializeModule();
   // Make the module, which holds all the code.
   // TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
     // Add the current debug info version into the module.

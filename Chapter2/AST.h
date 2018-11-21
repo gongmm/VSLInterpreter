@@ -1,39 +1,39 @@
 #pragma once
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/Optional.h"
+//#include "llvm/ADT/APFloat.h"
+//#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/Passes.h"
 #include "llvm/IR/DIBuilder.h"
-#include "llvm/Transforms/Scalar.h"
+//#include "llvm/Transforms/Scalar.h"
 #include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
+//#include "llvm/IR/Constants.h"
+//#include "llvm/IR/DerivedTypes.h"
+//#include "llvm/IR/Function.h"
+//#include "llvm/IR/Instructions.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
+//#include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
-#include "llvm/Support/FileSystem.h"
-#include "llvm/Support/Host.h"
+//#include "llvm/Support/FileSystem.h"
+//#include "llvm/Support/Host.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/TargetRegistry.h"
+//#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
-#include <algorithm>
-#include <cassert>
+//#include "llvm/Target/TargetMachine.h"
+//#include "llvm/Target/TargetOptions.h"
+//#include <algorithm>
+//#include <cassert>
 #include <cctype>
 #include <cstdio>
-#include <cstdlib>
+//#include <cstdlib>
 #include <map>
-#include <memory>
+//#include <memory>
 #include <string>
-#include <system_error>
-#include <utility>
+//#include <system_error>
+//#include <utility>
 #include <vector>
 
 using namespace llvm;
@@ -185,14 +185,15 @@ public:
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
 class PrototypeAST {
+  //SourceLocation Loc;
   std::string Name;
   std::vector<std::string> Args;
   bool IsOperator; //是否是一个操作符
   unsigned Precedence; //当该原型为一个双目操作符时，该属性存储其优先级
-  int Line;
+ // int Line;
 public:
-  PrototypeAST(SourceLocation Loc, const std::string &Name, std::vector<std::string> Args,bool IsOperator=false, unsigned Precedence = 0)
-      : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence), Line(Loc.Line) {}
+  PrototypeAST(const std::string &Name, std::vector<std::string> Args,bool IsOperator=false, unsigned Precedence = 0)
+      : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence) {}
 
   Function *codegen();
   const std::string &getName() const { return Name; }
@@ -215,7 +216,7 @@ public:
   }
 
   unsigned getBinaryPrecedence() const { return Precedence; }
-  int getLine() const { return Line; }
+//  int getLine() const { return Line; }
   
 };
 
@@ -357,9 +358,9 @@ class VarExprAST : public StatAST {
 	std::unique_ptr<StatAST> Body;
 
 public:
-	VarExprAST(SourceLocation Loc, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+	VarExprAST(std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
 		std::unique_ptr<StatAST> Body)
-		: StatAST(Loc),VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
 
 	Value *codegen() override;
     raw_ostream &dump(raw_ostream &out, int ind) override {

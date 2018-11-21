@@ -283,17 +283,17 @@ Function *FunctionAST::codegen() {
     DIFile *Unit = DBuilder->createFile(KSDbgInfo.TheCU->getFilename(),
                                         KSDbgInfo.TheCU->getDirectory());
     DIScope *FContext = Unit;
-    unsigned LineNo = P.getLine();
-    unsigned ScopeLine = LineNo;
-    DISubprogram *SP = DBuilder->createFunction(
-                                                FContext, P.getName(), StringRef(), Unit, LineNo,
-                                                CreateFunctionType(TheFunction->arg_size(), Unit),
-                                                false /* internal linkage */, true /* definition */, ScopeLine,
-                                                DINode::FlagPrototyped, false);
-    TheFunction->setSubprogram(SP);
+   // unsigned LineNo = P.getLine();
+    //unsigned ScopeLine = LineNo;
+   // DISubprogram *SP = DBuilder->createFunction(
+//                                                FContext, P.getName(), StringRef(), Unit, LineNo,
+//                                                CreateFunctionType(TheFunction->arg_size(), Unit),
+//                                                false /* internal linkage */, true /* definition */, ScopeLine,
+//                                                DINode::FlagPrototyped, false);
+    //TheFunction->setSubprogram(SP);
     
     // Push the current scope.
-    KSDbgInfo.LexicalBlocks.push_back(SP);
+   // KSDbgInfo.LexicalBlocks.push_back(SP);
     
     // Unset the location for the prologue emission (leading instructions with no
     // location in a function are considered part of the prologue and the debugger
@@ -307,13 +307,13 @@ Function *FunctionAST::codegen() {
 		// Create an alloca for this variable.
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
         // Create a debug descriptor for the variable.
-        DILocalVariable *D = DBuilder->createParameterVariable(
-                                                               SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
-                                                               true);
-        
-        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
-                                DebugLoc::get(LineNo, 0, SP),
-                                Builder.GetInsertBlock());
+      //  DILocalVariable *D = DBuilder->createParameterVariable(
+       //                                                        SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
+//                                                               true);
+//
+//        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
+//                                DebugLoc::get(LineNo, 0, SP),
+//                                Builder.GetInsertBlock());
 
 		// Store the initial value into the alloca.
 		Builder.CreateStore(&Arg, Alloca);

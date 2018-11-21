@@ -71,7 +71,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
   if (Kind && ArgNames.size() != Kind)
     return LogErrorP("Invalid number of operands for operator");
 
-  return llvm::make_unique<PrototypeAST>(FnLoc,FnName, std::move(ArgNames), Kind != 0,
+  return llvm::make_unique<PrototypeAST>(FnName, std::move(ArgNames), Kind != 0,
                                          BinaryPrecedence);
 }
 

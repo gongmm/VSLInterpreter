@@ -4,7 +4,7 @@
 void InitializeModule() {
 	// Open a new module.
 	TheModule = llvm::make_unique<Module>("my cool jit", TheContext);
-	TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
+	//TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
 
 	// Create a new pass manager attached to it.
 	//TheFPM = llvm::make_unique<legacy::FunctionPassManager>(TheModule.get());
