@@ -1,6 +1,8 @@
 #ifndef  GLOBAL
 #define GLOBAL
 #include "AST.h"
+//#include "../include/KaleidoscopeJIT.h"
+#include <map>
 
 using namespace llvm;
 using namespace llvm::orc;
@@ -41,6 +43,8 @@ enum Token {
 	UNARY = -19
 };
 
+static LLVMContext TheContext;
+static IRBuilder<> Builder(TheContext);
 
 std::string getTokName(int Tok) {
     switch (Tok) {
