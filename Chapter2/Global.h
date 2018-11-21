@@ -91,9 +91,8 @@ struct DebugInfo {
     DIType *getDoubleTy();
 } KSDbgInfo;
 
+
 extern std::unique_ptr<DIBuilder> DBuilder;
-
-
 extern bool recWhitespace(int LastChar);
 extern int recKeyword();
 extern int gettok();
