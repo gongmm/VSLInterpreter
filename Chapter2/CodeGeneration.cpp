@@ -10,7 +10,7 @@ using namespace llvm::sys;
 //===----------------------------------------------------------------------===//
 
 //LLVMContext TheContext;
-//IRBuilder<> Builder(TheContext);
+IRBuilder<> Builder(TheContext);
 //extern std::unique_ptr<Module> TheModule;
 //std::map<std::string, Value *> NamedValues;
 
