@@ -4,13 +4,13 @@
 
 
 using namespace llvm;
-using namespace llvm::sys;
+using namespace llvm::orc;
 //===----------------------------------------------------------------------===//
 // Code Generation
 //===----------------------------------------------------------------------===//
 
-//LLVMContext TheContext;
-//IRBuilder<> Builder(TheContext);
+LLVMContext TheContext;
+IRBuilder<> Builder(TheContext);
 //extern std::unique_ptr<Module> TheModule;
 //std::map<std::string, Value *> NamedValues;
 
