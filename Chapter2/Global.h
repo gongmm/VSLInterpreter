@@ -43,9 +43,6 @@ enum Token {
 	UNARY = -19
 };
 
-static LLVMContext TheContext;
-static IRBuilder<> Builder(TheContext);
-
 std::string getTokName(int Tok) {
     switch (Tok) {
         case TOKEOF:
