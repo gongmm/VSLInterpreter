@@ -48,7 +48,7 @@ std::unique_ptr<ExprAST> ParseParenExpr() {
 std::unique_ptr<ExprAST> ParseMinusExpr() {
   
   int BinOp = CurTok;
-
+  SourceLocation BinLoc = CurLoc;
   getNextToken(); // eat -.
 
   auto V = ParseExpression();
@@ -59,7 +59,7 @@ std::unique_ptr<ExprAST> ParseMinusExpr() {
   auto LHS = llvm::make_unique<NumberExprAST>(0);
   
   print("minus-expression\n");
-  return llvm::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(V));
+  return llvm::make_unique<BinaryExprAST>(BinLoc, BinOp, std::move(LHS), std::move(V));
   
 }
 
