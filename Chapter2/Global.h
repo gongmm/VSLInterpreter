@@ -42,6 +42,10 @@ enum Token {
 	BINARY = -18,
 	UNARY = -19
 };
+
+static LLVMContext TheContext;
+static IRBuilder<> Builder(TheContext);
+
 std::string getTokName(int Tok) {
     switch (Tok) {
         case TOKEOF:
@@ -80,8 +84,6 @@ std::string getTokName(int Tok) {
     return std::string(1, (char)Tok);
 }
 
-static LLVMContext TheContext;
-static IRBuilder<> Builder(TheContext);
 
 struct DebugInfo {
     DICompileUnit *TheCU;
@@ -93,71 +95,7 @@ struct DebugInfo {
     DIType *getDoubleTy();
 } KSDbgInfo;
 
-//===----------------------------------------------------------------------===//
-// Debug Info Support
-//===----------------------------------------------------------------------===//
-
-static std::unique_ptr<DIBuilder> DBuilder;
-
-DIType *DebugInfo::getDoubleTy() {
-    if (DblTy)
-        return DblTy;
-    
-    DblTy = DBuilder->createBasicType("double", 64, dwarf::DW_ATE_float);
-    return DblTy;
-}
-
-
-
-void DebugInfo::emitLocation(ExprAST *AST) {
-    if (!AST)
-        return Builder.SetCurrentDebugLocation(DebugLoc());
-    DIScope *Scope;
-    if (LexicalBlocks.empty())
-        Scope = TheCU;
-    else
-        Scope = LexicalBlocks.back();
-    Builder.SetCurrentDebugLocation(
-                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
-}
-
-void DebugInfo::emitLocation(StatAST *AST){
-    if (!AST)
-        return Builder.SetCurrentDebugLocation(DebugLoc());
-    DIScope *Scope;
-    if (LexicalBlocks.empty())
-        Scope = TheCU;
-    else
-        Scope = LexicalBlocks.back();
-    Builder.SetCurrentDebugLocation(
-                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
-}
-
-
-static DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
-    SmallVector<Metadata *, 8> EltTys;
-    DIType *DblTy = KSDbgInfo.getDoubleTy();
-    
-    // Add the result type.
-    EltTys.push_back(DblTy);
-    
-    for (unsigned i = 0, e = NumArgs; i != e; ++i)
-        EltTys.push_back(DblTy);
-    
-    return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
-}
-
-
-static int advance() {
-    int LastChar = getchar();
-    
-    if (LastChar == '\n' || LastChar == '\r') {
-        LexLoc.Line++;
-        LexLoc.Col = 0;
-    } else
-        LexLoc.Col++;
-    return LastChar;
-}
+extern std::unique_ptr<DIBuilder> DBuilder;
 
 
 extern bool recWhitespace(int LastChar);

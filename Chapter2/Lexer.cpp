@@ -10,7 +10,16 @@ using namespace std;
 //===----------------------------------------------------------------------===//
 // Lexer
 //===----------------------------------------------------------------------===//
-
+static int advance() {
+    int LastChar = getchar();
+    
+    if (LastChar == '\n' || LastChar == '\r') {
+        LexLoc.Line++;
+        LexLoc.Col = 0;
+    } else
+        LexLoc.Col++;
+    return LastChar;
+}
 
 /// 判断是否是空格、\t或\n
 bool recWhitespace(int LastChar) {
