@@ -4,7 +4,8 @@
 
 
 using namespace llvm;
-using namespace llvm::sys;
+//using namespace llvm::sys;
+using namespace llvm::orc;
 //===----------------------------------------------------------------------===//
 // Code Generation
 //===----------------------------------------------------------------------===//
