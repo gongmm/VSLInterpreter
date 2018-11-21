@@ -6,7 +6,7 @@
 #include "llvm/Analysis/Passes.h"
 #include "llvm/IR/DIBuilder.h"
 //#include "llvm/Transforms/Scalar.h"
-//#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/BasicBlock.h"
 //#include "llvm/IR/Constants.h"
 //#include "llvm/IR/DerivedTypes.h"
 //#include "llvm/IR/Function.h"
@@ -19,10 +19,9 @@
 #include "llvm/IR/Verifier.h"
 //#include "llvm/Support/FileSystem.h"
 //#include "llvm/Support/Host.h"
-//#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 //#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Transforms/Scalar.h"
 //#include "llvm/Target/TargetMachine.h"
 //#include "llvm/Target/TargetOptions.h"
 //#include <algorithm>
@@ -36,11 +35,10 @@
 //#include <system_error>
 //#include <utility>
 #include <vector>
-#include "../include/KaleidoscopeJIT.h"
 
 using namespace llvm;
-using namespace llvm::orc;
-//using namespace llvm::sys;
+//using namespace llvm::orc;
+using namespace llvm::sys;
 
 struct SourceLocation {
     int Line;
