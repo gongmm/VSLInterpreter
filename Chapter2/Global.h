@@ -43,9 +43,6 @@ enum Token {
 	UNARY = -19
 };
 
-static LLVMContext TheContext;
-static IRBuilder<> Builder(TheContext);
-
 std::string getTokName(int Tok) {
     switch (Tok) {
         case TOKEOF:
@@ -95,9 +92,8 @@ struct DebugInfo {
     DIType *getDoubleTy();
 } KSDbgInfo;
 
+
 extern std::unique_ptr<DIBuilder> DBuilder;
-
-
 extern bool recWhitespace(int LastChar);
 extern int recKeyword();
 extern int gettok();
