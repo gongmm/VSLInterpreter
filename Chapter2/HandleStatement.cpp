@@ -234,16 +234,24 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 	print("block-stat\n");
 	indent++;
 	//std::vector<VariableExprAST>variables;
-	std::vector<std::unique_ptr<ExprAST>> variables;
+	//std::vector<std::unique_ptr<ExprAST>> variables;
+	std::vector<std::string> variables;
 	std::vector<std::unique_ptr<StatAST>> statements;
 	while (CurTok == VAR){
 		print("declaration\n");
 		getNextToken();
+		// 至少需要一个变量名
+		if (CurTok != VARIABLE)
+			return LogErrorS("expected identifier after var");
 		do {
+			std::string Name = IdentifierStr;
 			/*VariableExprAST* ptr = dynamic_cast<VariableExprAST*>(ParseIdentifierExpr().release());
 			variables.push_back(*ptr);*/
-			if (auto Arg = ParseIdentifierExpr())
-				variables.push_back(std::move(Arg));
+			
+			variables.push_back(Name);
+
+			/*if (auto Arg = ParseIdentifierExpr())
+				variables.push_back(std::move(Arg));*/
 			/*else
 				return nullptr;*/
 			//若返回空 要报错

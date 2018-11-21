@@ -324,35 +324,28 @@ public:
     }
 };
 class BlockStatAST : public StatAST {
-	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
-	std::vector<std::unique_ptr<ExprAST>> Variables;
+	//std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+	//std::vector<std::unique_ptr<ExprAST>> Variables;
+	std::vector<std::string> Variables;
 	std::vector<std::unique_ptr<StatAST>> Statements;
-	std::map<std::string, llvm::Value*> locals;
+	//std::map<std::string, llvm::Value*> locals;
 public:
-	BlockStatAST(
-		SourceLocation Loc, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
-		std::vector<std::unique_ptr<StatAST>>)
-		: StatAST(Loc), VarNames(std::move(VarNames)), Statements(std::move(Statements)) {}
-
-	BlockStatAST(SourceLocation Loc, std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
+	
+	/*BlockStatAST(SourceLocation Loc, std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
+		: StatAST(Loc), Variables(std::move(Variables)), Statements(std::move(Statements)) {}*/
+	BlockStatAST(SourceLocation Loc, std::vector<std::string> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
 		: StatAST(Loc), Variables(std::move(Variables)), Statements(std::move(Statements)) {}
 
 	Value *codegen() override;
     raw_ostream &dump(raw_ostream &out, int ind) override {
         StatAST::dump(out<<"block ", ind);
-        for (auto &VarName : VarNames){
-            StatAST::dump(out<<VarName.first, ind);
-            VarName.second->dump(debugIndent(out, ind + 1), ind + 1);
-        }
-        for (const auto &Variable : Variables)
-            Variable->dump(debugIndent(out, ind + 1), ind + 1);
+       
+        /*for (const auto &Variable : Variables)
+            Variable->dump(debugIndent(out, ind + 1), ind + 1);*/
         
         for (const auto &statement : Statements)
             statement->dump(debugIndent(out, ind + 1), ind + 1);
        
-        for (auto &local : locals){
-            StatAST::dump(out<<local.first<<" "<<local.second, ind);
-        }
         return out;
     }
 };

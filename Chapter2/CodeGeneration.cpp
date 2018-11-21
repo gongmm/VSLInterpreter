@@ -554,21 +554,15 @@ Value * BlockStatAST::codegen()
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
-	// 注册所有的变量并进行初始化
-	for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
-		const std::string &VarName = VarNames[i].first;
-		ExprAST *Init = VarNames[i].second.get();
+	// 注册所有的变量
+	for (unsigned i = 0, e = Variables.size(); i != e; ++i) {
+		const std::string &VarName = Variables[i];
+		
 
 		// 在将变量添加到作用于前获得初始化表达式，防止初始化表达式中使用变量本身
-		Value *InitVal;
-		if (Init) {
-			InitVal = Init->codegen();
-			if (!InitVal)
-				return nullptr;
-		}
-		else { // 如果没有指定, 赋值为 0.0.
-			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
-		}
+		Value* InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+		// 如果没有指定, 赋值为 0.0.
+		
 		// 创建 alloca
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
 		Builder.CreateStore(InitVal, Alloca);
@@ -590,13 +584,13 @@ Value * BlockStatAST::codegen()
 		return nullptr;
 
 	// 删除当前作用域中的所有的变量
-	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
+	for (unsigned i = 0, e = Variables.size(); i != e; ++i)
 		// 恢复原来的值
-		NamedValues[VarNames[i].first] = OldBindings[i];
+		NamedValues[Variables[i]] = OldBindings[i];
 
 	// 返回Body部分的计算结果
 	return ret;
-
+	
 
 	/*
 
