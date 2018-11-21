@@ -35,11 +35,10 @@
 //#include <system_error>
 //#include <utility>
 #include <vector>
-#include "../include/KaleidoscopeJIT.h"
 
 using namespace llvm;
-using namespace llvm::orc;
-//using namespace llvm::sys;
+//using namespace llvm::orc;
+using namespace llvm::sys;
 
 struct SourceLocation {
     int Line;

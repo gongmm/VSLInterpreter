@@ -1,4 +1,4 @@
-#ifndef LEXER
+﻿#ifndef LEXER
 #define LEXER
 #include "Global.h"
 #include <cstdio>
