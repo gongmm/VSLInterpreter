@@ -50,7 +50,7 @@ static SourceLocation CurLoc;
 static SourceLocation LexLoc = {1, 0};
 
 
-raw_ostream &debugIndent(raw_ostream &O, int size) {
+inline raw_ostream &debugIndent(raw_ostream &O, int size) {
     return O << std::string(size, ' ');
 }
 

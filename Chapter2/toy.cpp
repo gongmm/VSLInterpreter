@@ -30,7 +30,7 @@ void MainLoop() {
 // Main driver code.
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<DIBuilder> DBuilder;
+//extern std::unique_ptr<DIBuilder> DBuilder;
 extern DebugInfo KSDbgInfo;
 
 int main() {
