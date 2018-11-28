@@ -3,8 +3,8 @@
 #include <fstream>
 
 using namespace llvm;
-//using namespace llvm::orc;
-using namespace llvm::sys;
+using namespace llvm::orc;
+//using namespace llvm::sys;
 
 
 /// top ::= definition | external | expression | ';'
