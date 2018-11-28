@@ -1,5 +1,5 @@
-#include "Global.h"
-
+#pragma once
+#include "DebugInfo.h"
 #include <fstream>
 
 using namespace llvm;
@@ -29,6 +29,9 @@ void MainLoop() {
 //===----------------------------------------------------------------------===//
 // Main driver code.
 //===----------------------------------------------------------------------===//
+
+std::unique_ptr<DIBuilder> DBuilder;
+extern DebugInfo KSDbgInfo;
 
 int main() {
 	//³õÊ¼»¯
@@ -68,8 +71,8 @@ int main() {
     // Currently down as "fib.ks" as a filename since we're redirecting stdin
     // but we'd like actual source locations.
     KSDbgInfo.TheCU = DBuilder->createCompileUnit(
-                                                  dwarf::DW_LANG_C, DBuilder->createFile("fib", "."),
-                                                  "VSL Compiler", 0, "", 0);
+        dwarf::DW_LANG_C, DBuilder->createFile("fib", "."), "VSL Compiler", 0,
+        "", 0);
   // Run the main "interpreter loop" now.
   MainLoop();
     

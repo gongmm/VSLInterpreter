@@ -1,5 +1,5 @@
 #pragma once
-#include "Global.h"
+#include "DebugInfo.h"
 #include "llvm/IR/ValueSymbolTable.h"
 
 
@@ -9,10 +9,12 @@ using namespace llvm::sys;
 // Code Generation
 //===----------------------------------------------------------------------===//
 
-//LLVMContext TheContext;
-//static IRBuilder<> Builder(TheContext);
+LLVMContext TheContext;
+IRBuilder<> Builder(TheContext);
 //extern std::unique_ptr<Module> TheModule;
 //std::map<std::string, Value *> NamedValues;
+
+extern DebugInfo KSDbgInfo;
 
 Value *LogErrorV(const char *Str) {
 	LogError(Str);

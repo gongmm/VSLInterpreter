@@ -18,6 +18,44 @@ int getNextToken() { return CurTok = gettok(); }
 /// defined.
 std::map<char, int> BinopPrecedence;
 
+std::string getTokName(int Tok) {
+  switch (Tok) {
+  case TOKEOF:
+    return "TOKEOF";
+  case TEXT:
+    return "TEXT";
+  case ASSIGN_SYMBOL:
+    return "ASSIGN_SYMBOL";
+  case FUNC:
+    return "FUNC";
+  case INTEGER:
+    return "INTEGER";
+  case IF:
+    return "IF";
+  case THEN:
+    return "THEN";
+  case ELSE:
+    return "ELSE";
+  case WHILE:
+    return "WHILE";
+  case FI:
+    return "FI";
+  case BINARY:
+    return "BINARY";
+  case UNARY:
+    return "UNARY";
+  case DONE:
+    return "DONE";
+  case VARIABLE:
+    return "VARIABLE";
+  case CONTINUE:
+    return "CONTINUE";
+  case RETURN:
+    return "RETURN";
+  }
+  return std::string(1, (char)Tok);
+}
+
 /// 缩进指示量
 int indent = 0;
 
@@ -80,5 +118,8 @@ std::map<std::string, AllocaInst *> NamedValues;
 //std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 //std::unique_ptr<KaleidoscopeJIT> TheJIT;
 std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+
+
+
 
 

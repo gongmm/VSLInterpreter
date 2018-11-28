@@ -1,3 +1,4 @@
+#pragma once
 #ifndef LEXER
 #define LEXER
 #include "Global.h"
@@ -50,6 +51,17 @@ int recKeyword() {
 		return BINARY;
 	return Token();
 }
+
+int advance() {
+  int LastChar = getchar();
+
+  if (LastChar == '\n' || LastChar == '\r') {
+    LexLoc.Line++;
+    LexLoc.Col = 0;
+  } else
+    LexLoc.Col++;
+  return LastChar;
+}
 /// gettok - Return the next token from standard input.
 int gettok() {
 	static int LastChar = ' ';
@@ -91,7 +103,7 @@ int gettok() {
 
 		std::regex re("(.+\..+){2,}");
 		if (regex_match(NumStr, re)) {
-			cout << "含非法词：" << NumStr << endl;
+			cout << "invalid input:" << NumStr << endl;
 			return 0;
 		}
 		NumVal = strtod(NumStr.c_str(), 0);

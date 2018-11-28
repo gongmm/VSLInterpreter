@@ -1,3 +1,4 @@
+#pragma once
 #ifndef  GLOBAL
 #define GLOBAL
 #include "AST.h"
@@ -42,122 +43,38 @@ enum Token {
 	BINARY = -18,
 	UNARY = -19
 };
-std::string getTokName(int Tok) {
-    switch (Tok) {
-        case TOKEOF:
-            return "TOKEOF";
-        case TEXT:
-            return "TEXT";
-        case ASSIGN_SYMBOL:
-            return "ASSIGN_SYMBOL";
-        case FUNC:
-            return "FUNC";
-        case INTEGER:
-            return "INTEGER";
-        case IF:
-            return "IF";
-        case THEN:
-            return "THEN";
-        case ELSE:
-            return "ELSE";
-        case WHILE:
-            return "WHILE";
-        case FI:
-            return "FI";
-        case BINARY:
-            return "BINARY";
-        case UNARY:
-            return "UNARY";
-        case DONE:
-            return "DONE";
-        case VARIABLE:
-            return "VARIABLE";
-        case CONTINUE:
-            return "CONTINUE";
-        case RETURN:
-            return "RETURN";
-    }
-    return std::string(1, (char)Tok);
-}
 
-static LLVMContext TheContext;
-static IRBuilder<> Builder(TheContext);
 
-struct DebugInfo {
-    DICompileUnit *TheCU;
-    DIType *DblTy;
-    std::vector<DIScope *> LexicalBlocks;
-    
-    void emitLocation(ExprAST *AST);
-    void emitLocation(StatAST *AST);
-    DIType *getDoubleTy();
-} KSDbgInfo;
+extern LLVMContext TheContext;
+extern IRBuilder<> Builder;
 
-//===----------------------------------------------------------------------===//
-// Debug Info Support
-//===----------------------------------------------------------------------===//
+//struct DebugInfo {
+//    DICompileUnit *TheCU;
+//    DIType *DblTy;
+//    std::vector<DIScope *> LexicalBlocks;
+//    
+//    void emitLocation(ExprAST *AST);
+//    void emitLocation(StatAST *AST);
+//    DIType *getDoubleTy();
+//} KSDbgInfo;
 
-static std::unique_ptr<DIBuilder> DBuilder;
-
-DIType *DebugInfo::getDoubleTy() {
-    if (DblTy)
-        return DblTy;
-    
-    DblTy = DBuilder->createBasicType("double", 64, dwarf::DW_ATE_float);
-    return DblTy;
-}
+extern std::unique_ptr<DIBuilder> DBuilder;
+//extern struct DebugInfo KSDbgInfo;
+//DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
+//    SmallVector<Metadata *, 8> EltTys;
+//    DIType *DblTy = KSDbgInfo.getDoubleTy();
+//    
+//    // Add the result type.
+//    EltTys.push_back(DblTy);
+//    
+//    for (unsigned i = 0, e = NumArgs; i != e; ++i)
+//        EltTys.push_back(DblTy);
+//    
+//    return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
+//}
 
 
 
-void DebugInfo::emitLocation(ExprAST *AST) {
-    if (!AST)
-        return Builder.SetCurrentDebugLocation(DebugLoc());
-    DIScope *Scope;
-    if (LexicalBlocks.empty())
-        Scope = TheCU;
-    else
-        Scope = LexicalBlocks.back();
-    Builder.SetCurrentDebugLocation(
-                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
-}
-
-void DebugInfo::emitLocation(StatAST *AST){
-    if (!AST)
-        return Builder.SetCurrentDebugLocation(DebugLoc());
-    DIScope *Scope;
-    if (LexicalBlocks.empty())
-        Scope = TheCU;
-    else
-        Scope = LexicalBlocks.back();
-    Builder.SetCurrentDebugLocation(
-                                    DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
-}
-
-
-static DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
-    SmallVector<Metadata *, 8> EltTys;
-    DIType *DblTy = KSDbgInfo.getDoubleTy();
-    
-    // Add the result type.
-    EltTys.push_back(DblTy);
-    
-    for (unsigned i = 0, e = NumArgs; i != e; ++i)
-        EltTys.push_back(DblTy);
-    
-    return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
-}
-
-
-static int advance() {
-    int LastChar = getchar();
-    
-    if (LastChar == '\n' || LastChar == '\r') {
-        LexLoc.Line++;
-        LexLoc.Col = 0;
-    } else
-        LexLoc.Col++;
-    return LastChar;
-}
 
 
 extern bool recWhitespace(int LastChar);
@@ -199,7 +116,6 @@ extern void HandleDefinition();
 // Code Generation
 //===----------------------------------------------------------------------===//
 
-extern LLVMContext TheContext;
 extern std::unique_ptr<Module> TheModule;
 extern std::map<std::string, AllocaInst *> NamedValues;
 //extern std::map<std::string, Value *> NamedValues;
