@@ -49,10 +49,10 @@ int main() {
 
 
   // Prime the first token.
-  fprintf(stderr, "ready> ");
+  //fprintf(stderr, "ready> ");
   getNextToken();
   //初始化TheJIT和优化器
-  //TheJIT = llvm::make_unique<KaleidoscopeJIT>();
+  TheJIT = llvm::make_unique<KaleidoscopeJIT>();
 
    InitializeModule();
   // Make the module, which holds all the code.

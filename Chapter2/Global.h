@@ -129,7 +129,7 @@ extern std::map<std::string, AllocaInst *> NamedValues;
 // JIT & Optimizer Support
 //===----------------------------------------------------------------------===//
 //extern std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-//extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
+extern std::unique_ptr<KaleidoscopeJIT> TheJIT;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 //optimize
 extern void InitializeModule();

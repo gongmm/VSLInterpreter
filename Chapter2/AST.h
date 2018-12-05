@@ -191,7 +191,7 @@ class PrototypeAST {
   std::vector<std::string> Args;
   bool IsOperator; //是否是一个操作符
   unsigned Precedence; //当该原型为一个双目操作符时，该属性存储其优先级
- // int Line;
+  int Line;
 public:
   PrototypeAST(const std::string &Name, std::vector<std::string> Args,bool IsOperator=false, unsigned Precedence = 0)
       : Name(Name), Args(std::move(Args)), IsOperator(IsOperator), Precedence(Precedence) {}
@@ -217,7 +217,7 @@ public:
   }
 
   unsigned getBinaryPrecedence() const { return Precedence; }
-//  int getLine() const { return Line; }
+  int getLine() const { return Line; }
   
 };
 

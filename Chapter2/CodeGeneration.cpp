@@ -179,10 +179,10 @@ Value *BinaryExprAST::codegen() {
 		return Builder.CreateFMul(L, R, "multmp");
 	case '/':
 		return Builder.CreateFDiv(L, R, "divtmp");
-	//case '<':
-	//	L = Builder.CreateFCmpULT(L, R, "cmptmp");
-	//	// Convert bool 0/1 to double 0.0 or 1.0
-	//	return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
+	case '<':
+		L = Builder.CreateFCmpULT(L, R, "cmptmp");
+		// Convert bool 0/1 to double 0.0 or 1.0
+		return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
 	default:
 		//return LogErrorV("invalid binary operator");
         //若为新增操作符，跳出到下面执行
@@ -276,7 +276,8 @@ Function *FunctionAST::codegen() {
 			//args inconsistency
 			return LogErrorF("main function's arg_size is inconsistent");
 		}
-		P.setArgs(args);
+		//P.setArgs(args);
+		temp->setArgs(Args);
 		FunctionProtos[Proto->getName()] = std::move(temp);
 		MainLackOfProtos.erase(Proto->getName());
 		TheFunction = getFunction(P.getName());
@@ -306,17 +307,17 @@ Function *FunctionAST::codegen() {
     DIFile *Unit = DBuilder->createFile(KSDbgInfo.TheCU->getFilename(),
                                         KSDbgInfo.TheCU->getDirectory());
     DIScope *FContext = Unit;
-   // unsigned LineNo = P.getLine();
-    //unsigned ScopeLine = LineNo;
-   // DISubprogram *SP = DBuilder->createFunction(
-//                                                FContext, P.getName(), StringRef(), Unit, LineNo,
-//                                                CreateFunctionType(TheFunction->arg_size(), Unit),
-//                                                false /* internal linkage */, true /* definition */, ScopeLine,
-//                                                DINode::FlagPrototyped, false);
-    //TheFunction->setSubprogram(SP);
+    unsigned LineNo = P.getLine();
+    unsigned ScopeLine = LineNo;
+    DISubprogram *SP = DBuilder->createFunction(
+                                                FContext, P.getName(), StringRef(), Unit, LineNo,
+                                                CreateFunctionType(TheFunction->arg_size(), Unit),
+                                                false /* internal linkage */, true /* definition */, ScopeLine,
+                                                DINode::FlagPrototyped, false);
+    TheFunction->setSubprogram(SP);
     
     // Push the current scope.
-   // KSDbgInfo.LexicalBlocks.push_back(SP);
+    KSDbgInfo.LexicalBlocks.push_back(SP);
     
     // Unset the location for the prologue emission (leading instructions with no
     // location in a function are considered part of the prologue and the debugger
@@ -330,13 +331,13 @@ Function *FunctionAST::codegen() {
 		// Create an alloca for this variable.
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
         // Create a debug descriptor for the variable.
-      //  DILocalVariable *D = DBuilder->createParameterVariable(
-       //                                                        SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
-//                                                               true);
-//
-//        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
-//                                DebugLoc::get(LineNo, 0, SP),
-//                                Builder.GetInsertBlock());
+        DILocalVariable *D = DBuilder->createParameterVariable(
+                                                               SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
+                                                               true);
+
+        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
+                                DebugLoc::get(LineNo, 0, SP),
+                                Builder.GetInsertBlock());
 
 		// Store the initial value into the alloca.
 		Builder.CreateStore(&Arg, Alloca);
