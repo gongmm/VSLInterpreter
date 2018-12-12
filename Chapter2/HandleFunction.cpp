@@ -10,7 +10,7 @@
 std::unique_ptr<PrototypeAST> ParsePrototype() {
   std::string FnName;
   SourceLocation FnLoc = CurLoc;
-    
+
   unsigned Kind = 0; // 0 为函数, 1 为单目操作符, 2 为双目操作符.
   unsigned BinaryPrecedence = 30; //存储操作符优先级
 
@@ -56,7 +56,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype() {
   std::vector<std::string> ArgNames;
   auto nextToken = getNextToken();
   while (nextToken == VARIABLE) {
-	ArgNames.push_back(IdentifierStr);
+    ArgNames.push_back(IdentifierStr);
     nextToken = getNextToken();
     if (nextToken == ',')
       nextToken = getNextToken();
@@ -87,23 +87,23 @@ std::unique_ptr<FunctionAST> ParseDefinition() {
   if (auto S = ParseStatement())
     return llvm::make_unique<FunctionAST>(std::move(Proto), std::move(S));
 
-   return nullptr;
+  return nullptr;
 }
 
 void HandleDefinition() {
   if (auto FnAST = ParseDefinition()) {
-    //fprintf(stderr, "Parsed a function definition.\n");
+    // fprintf(stderr, "Parsed a function definition.\n");
     /*outputToTxt("FUNCTION.");*/
-      if (!FnAST->codegen())
-          fprintf(stderr, "Error reading function definition:");
-	  else{
-		  if (hasMainFunction&&MainLackOfProtos.size() == 0) {
-			  processMain();
-			  hasMainFunction = false;
-		  }
-	  }
+    if (!FnAST->codegen())
+      fprintf(stderr, "Error reading function definition:");
+    else {
+      if (hasMainFunction && MainLackOfProtos.size() == 0) {
+        processMain();
+        hasMainFunction = false;
+      }
+    }
   } else {
     // Skip token for error recovery.
-    //getNextToken();
+    // getNextToken();
   }
 }

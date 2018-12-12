@@ -6,7 +6,7 @@
 
 DebugInfo KSDbgInfo;
 
-//DIType *DebugInfo::getDoubleTy() {
+// DIType *DebugInfo::getDoubleTy() {
 //	if (DblTy)
 //		return DblTy;
 //
@@ -14,7 +14,7 @@ DebugInfo KSDbgInfo;
 //	return DblTy;
 //}
 
-//void DebugInfo::emitLocation(ExprAST *AST) {
+// void DebugInfo::emitLocation(ExprAST *AST) {
 //	if (!AST)
 //		return Builder.SetCurrentDebugLocation(DebugLoc());
 //	DIScope *Scope;
@@ -26,7 +26,7 @@ DebugInfo KSDbgInfo;
 //		DebugLoc::get(AST->getLine(), AST->getCol(), Scope));
 //}
 
-//void DebugInfo::emitLocation(StatAST *AST) {
+// void DebugInfo::emitLocation(StatAST *AST) {
 //	if (!AST)
 //		return Builder.SetCurrentDebugLocation(DebugLoc());
 //	DIScope *Scope;
