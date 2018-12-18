@@ -439,7 +439,66 @@ Value * PrintStatAST::codegen()
 
 Value * IfStatAST::codegen()
 {
-    
+	KSDbgInfo.emitLocation(this);
+
+	Value *CondV = IfCondition->codegen();
+	if (!CondV)
+		return nullptr;
+
+	// Convert condition to a bool by comparing non-equal to 0.0.
+	CondV = Builder.CreateFCmpONE(
+		CondV, ConstantFP::get(TheContext, APFloat(0.0)), "ifcond");
+
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+	// Create blocks for the then and else cases.  Insert the 'then' block at the
+	// end of the function.
+	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else");
+	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
+
+	Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+
+	// Emit then value.
+	Builder.SetInsertPoint(ThenBB);
+
+	Value *ThenV = ThenStat->codegen();
+	if (!ThenV)
+		return nullptr;
+
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	ThenBB = Builder.GetInsertBlock();
+
+
+
+	Value *ElseV = nullptr;
+
+	if (ElseStat) {
+		// Emit else block.
+		TheFunction->getBasicBlockList().push_back(ElseBB);
+		Builder.SetInsertPoint(ElseBB);
+
+		ElseV = ElseStat->codegen();
+		if (!ElseV)
+			return nullptr;
+
+		Builder.CreateBr(MergeBB);
+		Builder.GetInsertBlock();
+
+	}
+
+	// Emit merge block.
+	TheFunction->getBasicBlockList().push_back(MergeBB);
+	Builder.SetInsertPoint(MergeBB);
+	PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+
+	PN->addIncoming(ThenV, ThenBB);
+	if (ElseStat) {
+		PN->addIncoming(ElseV, ElseBB);
+	}
+	return PN;
+    /*
     // Get the current Function object that is being built
     Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
@@ -447,7 +506,7 @@ Value * IfStatAST::codegen()
     AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
     
     KSDbgInfo.emitLocation(this);
-    
+	
     Value *OldVal=Builder.CreateLoad(NamedValues[VarName]);
     NamedValues[VarName]=Alloca;
 
@@ -504,6 +563,7 @@ Value * IfStatAST::codegen()
         NamedValues.erase(VarName);
    
     return result;
+	*/
 }
 
 
@@ -599,7 +659,7 @@ Value * BlockStatAST::codegen()
 	}
 
 	// 生成body部分的代码, 现在所有定义的变量均在作用域中
-	Value *ret;
+	Value *ret = 0;
 	for (unsigned i = 0, e = Statements.size(); i != e; ++i) {
 		ret = Statements[i]->codegen();
 
