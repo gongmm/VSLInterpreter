@@ -289,7 +289,7 @@ class ContinueStatAST : public StatAST {
 };
 class IfStatAST : public StatAST {
     //condition's value
-    std::string VarName;
+    //std::string VarName;
 	std::unique_ptr<ExprAST> IfCondition;
 	std::unique_ptr<StatAST> ThenStat;
 	std::unique_ptr<StatAST> ElseStat;
@@ -301,7 +301,7 @@ public:
 
 	Value *codegen() override;
     raw_ostream &dump(raw_ostream &out, int ind) override {
-        StatAST::dump(out<<"if "<<VarName, ind);
+        //StatAST::dump(out<<"if "<<VarName, ind);
         IfCondition->dump(debugIndent(out, ind) << "Cond:", ind + 1);
         ThenStat->dump(debugIndent(out, ind) << "Then:", ind + 1);
         ElseStat->dump(debugIndent(out, ind) << "Else:", ind + 1);
@@ -310,7 +310,7 @@ public:
 };
 class WhileStatAST : public StatAST {
     //condition's value
-    std::string VarName;
+    //std::string VarName;
 	std::unique_ptr<ExprAST> WhileCondition;
 	std::unique_ptr<StatAST> DoStat;
 public:
@@ -319,7 +319,7 @@ public:
 
 	Value *codegen() override;
     raw_ostream &dump(raw_ostream &out, int ind) override {
-        StatAST::dump(out<<"while "<<VarName, ind);
+        //StatAST::dump(out<<"while "<<VarName, ind);
         WhileCondition->dump(debugIndent(out, ind) << "WhileCond:", ind + 1);
         DoStat->dump(debugIndent(out, ind) << "DoStat:", ind + 1);
         return out;
