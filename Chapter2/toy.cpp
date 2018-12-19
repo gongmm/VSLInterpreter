@@ -37,9 +37,24 @@ void MainLoop() {
 /// putchard - putchar that takes a double and returns 0.
 extern "C" DLLEXPORT double putchard(double X) {
 	fputc((char)X, stdout);
+return 0;
+}
+extern "C" DLLEXPORT double putnum(double X) {
+	int temp = X;
+	int temp2 = 0;
+	while (temp>0) {
+		temp2 = temp2 * 10;
+		temp2 =temp2+ temp % 10;
+		temp = temp / 10;
+	}
+		while (temp2 > 0) {
+			fputc((char)((temp2 % 10) + '0'), stdout);
+			temp2 = temp2 / 10;
+		}
+		if(temp2==0)
+			fputc((char)('0'), stdout);
 	return 0;
 }
-
 /// printd - printf that takes a double prints it as "%f\n", returning 0.
 extern "C" DLLEXPORT double printd(double X) {
 	fprintf(stderr, "%f\n", X);
@@ -100,6 +115,12 @@ int main() {
 	  30);
   FunctionProtos["putchard"] = std::move(Proto);
   Function *TheFunction = getFunction("putchard");
+  std::vector<std::string> ArgNames2;
+  ArgNames.push_back("char");
+  Proto = llvm::make_unique<PrototypeAST>("putnum", std::move(ArgNames), false,
+	  30);
+  FunctionProtos["putnum"] = std::move(Proto);
+  TheFunction = getFunction("putnum");
   MainLoop();
 
   // Finalize the debug info.

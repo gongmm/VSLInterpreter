@@ -458,11 +458,12 @@ Value * PrintStatAST::codegen()
 		else {
 			std::unique_ptr<ExprAST> temp;
 			temp.reset(ptr);
-			Function *CalleeF = getFunction("putchard");
+			Function *CalleeF = getFunction("putnum");
 			if (!CalleeF)
 				return LogErrorV("Unknown function referenced");
 			std::vector<Value *> ArgsV;
-			ArgsV.push_back(temp->codegen() + '0');
+			Value* value = temp->codegen();
+			ArgsV.push_back(value);
 			Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 		}
 	}
