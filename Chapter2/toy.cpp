@@ -24,6 +24,27 @@ void MainLoop() {
     }
   }
 }
+//===----------------------------------------------------------------------===//
+// "Library" functions that can be "extern'd" from user code.
+//===----------------------------------------------------------------------===//
+//添加print调用
+#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+/// putchard - putchar that takes a double and returns 0.
+extern "C" DLLEXPORT double putchard(double X) {
+	fputc((char)X, stdout);
+	return 0;
+}
+
+/// printd - printf that takes a double prints it as "%f\n", returning 0.
+extern "C" DLLEXPORT double printd(double X) {
+	fprintf(stderr, "%f\n", X);
+	return 0;
+}
 
 //===----------------------------------------------------------------------===//
 // Main driver code.
@@ -72,6 +93,13 @@ int main() {
       dwarf::DW_LANG_C, DBuilder->createFile("fib", "."), "VSL Compiler", 0, "",
       0);
   // Run the main "interpreter loop" now.
+  //添加print
+  std::vector<std::string> ArgNames;
+  ArgNames.push_back("char");
+  auto Proto = llvm::make_unique<PrototypeAST>("putchard", std::move(ArgNames), false,
+	  30);
+  FunctionProtos["putchard"] = std::move(Proto);
+  Function *TheFunction = getFunction("putchard");
   MainLoop();
 
   // Finalize the debug info.

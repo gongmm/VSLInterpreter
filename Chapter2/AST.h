@@ -166,6 +166,9 @@ public:
     raw_ostream &dump(raw_ostream &out, int ind) override {
         return ExprAST::dump(out<<"text "<<Text, ind);
     }
+	std::string getText() {
+		return Text;
+	}
 };
 
 class StatAST{

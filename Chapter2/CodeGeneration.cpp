@@ -433,8 +433,40 @@ Value * ReturnStatAST::codegen()
 
 Value * PrintStatAST::codegen()
 {
-    KSDbgInfo.emitLocation(this);
-	return nullptr;
+	KSDbgInfo.emitLocation(this);
+	//std::vector<std::unique_ptr<ExprAST>> Texts;
+	for (int i = 0; i < Texts.size(); i++) {
+		auto Exp = std::move(Texts[i]);
+		ExprAST* ptr = dynamic_cast<ExprAST*>(Exp.get());
+		if (ptr != nullptr) {
+			Exp.release();
+		}
+		const char* typeName = typeid(*ptr).name();
+		const char* className = typeid(TextExprAST).name();
+		if (strcmp(typeName, className) == 0) {
+			std::unique_ptr<TextExprAST> text;
+			text.reset((TextExprAST*)ptr);
+			for (int j = 0; j < text->getText().size(); j++) {
+				Function *CalleeF = getFunction("putchard");
+				if (!CalleeF)
+					return LogErrorV("Unknown function referenced");
+				std::vector<Value *> ArgsV;
+				ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(text->getText().at(j)))));
+				Builder.CreateCall(CalleeF, ArgsV, "calltmp");
+			}
+		}
+		else {
+			std::unique_ptr<ExprAST> temp;
+			temp.reset(ptr);
+			Function *CalleeF = getFunction("putchard");
+			if (!CalleeF)
+				return LogErrorV("Unknown function referenced");
+			std::vector<Value *> ArgsV;
+			ArgsV.push_back(temp->codegen() + '0');
+			Builder.CreateCall(CalleeF, ArgsV, "calltmp");
+		}
+	}
+	return ConstantFP::get(TheContext, APFloat((double)(0)));
 }
 
 Value * IfStatAST::codegen()
