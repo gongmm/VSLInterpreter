@@ -579,23 +579,22 @@ Value * WhileStatAST::codegen()
 	// 获取正在构建的当前Function对象
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
     
-    //AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, "condition");
 
-	//create loop block
+	// create loop block
 	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
 	// create after block
 	BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloop", TheFunction);
-    //Builder.CreateStore(StartVal, Alloca);
+    
+	// 和0比较
 	Condition = Builder.CreateFCmpONE(Condition, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 	// branch base on startcond
 	Builder.CreateCondBr(Condition, LoopBB, AfterBB);
     
 	
-	//Builder.CreateBr(LoopBB);
 	// insert LoopBB.
 	Builder.SetInsertPoint(LoopBB);
 	
-	
+	// Do statement 中间代码生成
 	if (!DoStat->codegen())
 		return nullptr;
 
@@ -604,45 +603,16 @@ Value * WhileStatAST::codegen()
 	Condition = WhileCondition->codegen();
 	if (!Condition)
 		return nullptr;
-	
-	/*Value *EndCond = WhileCondition->codegen();
-	if (!EndCond)
-		return nullptr;*/
-    
-    
-    
-    
-    //StartVal=Builder.CreateFCmpONE(Builder.CreateLoad(Alloca), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+
+ 
     Condition=Builder.CreateFCmpONE(Condition, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
     
 
-    
-
-    //save  NamedValues[VarName]
-    //Value *OldVal = Builder.CreateLoad(NamedValues[VarName]);
-    //NamedValues[VarName]=Alloca;
-    
-	
-
-    //Builder.CreateStore(EndCond, Alloca);
-    
-    //EndCond=Builder.CreateFCmpONE(Builder.CreateLoad(Alloca), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
-
-    //Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
-
 	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
-
-	// Restore the unshadowed variable.t
-	/*
-    if (OldVal)
-        Builder.CreateStore(OldVal, Alloca);
-    else
-        NamedValues.erase(VarName);
-	*/
 
 	// while循环的代码生成总是返回0.0
 	return Constant::getNullValue(Type::getDoubleTy(TheContext));
