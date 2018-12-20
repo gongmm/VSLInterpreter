@@ -458,7 +458,7 @@ Value * PrintStatAST::codegen()
 		else {
 			std::unique_ptr<ExprAST> temp;
 			temp.reset(ptr);
-			Function *CalleeF = getFunction("putnum");
+			Function *CalleeF = getFunction("printd");
 			if (!CalleeF)
 				return LogErrorV("Unknown function referenced");
 			std::vector<Value *> ArgsV;
