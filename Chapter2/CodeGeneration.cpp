@@ -205,14 +205,15 @@ Value *CallExprAST::codegen() {
 	//修改后
 	// Look up the name in the global module table.
 	Function *CalleeF = getFunction(Callee);
-	if (isMain&&CalleeF==nullptr) {
+	//if (isMain&&CalleeF==nullptr) {
+	if (CalleeF == nullptr) {
 		std::vector<std::string> ArgNames;
 		//暂时存储名称，名称名为错误值，到真正遇到函数时再加
 		for (int i = 0; i < Args.size();i++) {
 			ArgNames.push_back("temp"+i);
 		}
 		MainLackOfProtos[Callee]= llvm::make_unique<PrototypeAST>(Callee, std::move(ArgNames));
-		//存在问题：若是下次在取该值名称不一致怎么办！！！
+		
 		CalleeF = getLackFunction(Callee);
 	}
 	if (!CalleeF)
@@ -261,15 +262,16 @@ Function *FunctionAST::codegen() {
 	auto &P = *Proto;
 
 	//添加关于main的逻辑-------------------------------------------
-	if (P.getName() == "main")
-		isMain = true;
+	//	if (P.getName() == "main")
+	//		isMain = true;
 	//check if main already exists
 	Function *TheFunction;
 	std::unique_ptr<PrototypeAST>temp;
-	if (hasMainFunction) {
-		temp = std::move(MainLackOfProtos[Proto->getName()]);
-	}
-	if (hasMainFunction&&temp != nullptr) {
+	//if (hasMainFunction) {
+	temp = std::move(MainLackOfProtos[Proto->getName()]);
+	//}
+	//if (hasMainFunction&&temp != nullptr) {
+	if (temp != nullptr) {
 		auto args = temp->getArgs();
 		auto Args = P.getArgs();
 		if (args.size() != Args.size()) {
@@ -362,7 +364,7 @@ Function *FunctionAST::codegen() {
 
 		//更新isMain值
 		if (P.getName() == "main") {
-			isMain = false;
+			//	isMain = false;
 			hasMainFunction = true;
 		}
 
@@ -447,11 +449,27 @@ Value * PrintStatAST::codegen()
 			std::unique_ptr<TextExprAST> text;
 			text.reset((TextExprAST*)ptr);
 			for (int j = 0; j < text->getText().size(); j++) {
+				char t1 = text->getText().at(j);
+				if (t1 == '\\') {
+					j++;
+					if (j >= text->getText().size())
+						return LogErrorV("input String is not right!");
+					t1 = text->getText().at(j);
+					if (t1 == 'n') {
+						t1 = '\n';
+					}
+					else if (t1 == '\\') {
+						t1 = '\\';
+					}
+					else if (t1 == '\"') {
+						t1 = '\"';
+					}
+				}
 				Function *CalleeF = getFunction("putchard");
 				if (!CalleeF)
 					return LogErrorV("Unknown function referenced");
 				std::vector<Value *> ArgsV;
-				ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(text->getText().at(j)))));
+				ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(t1))));
 				Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 			}
 		}

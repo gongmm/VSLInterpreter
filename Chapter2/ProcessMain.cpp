@@ -1,6 +1,6 @@
 #pragma once
 #include "Global.h"
-bool isMain = false;
+//bool isMain = false;
 std::map<std::string, std::unique_ptr<PrototypeAST>> MainLackOfProtos;
 bool hasMainFunction=false;
 Function *getLackFunction(std::string Name) {

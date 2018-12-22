@@ -135,11 +135,11 @@ extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 extern void InitializeModule();
 Function *getFunction(std::string Name);
 //support main()
-extern bool isMain;
+//extern bool isMain;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> MainLackOfProtos;
 extern bool hasMainFunction;
 Function *getLackFunction(std::string Name);
-extern void processMain();
+//extern void processMain();
 //===----------------------------------------------------------------------===//
 // "Library" functions that can be "extern'd" from user code.
 //===----------------------------------------------------------------------===//

@@ -97,10 +97,10 @@ void HandleDefinition() {
     if (!FnAST->codegen())
       fprintf(stderr, "Error reading function definition:");
     else {
-      if (hasMainFunction && MainLackOfProtos.size() == 0) {
-        processMain();
-        hasMainFunction = false;
-      }
+      //if (hasMainFunction && MainLackOfProtos.size() == 0) {
+    //    processMain();
+        //hasMainFunction = false;
+      //}
     }
   } else {
     // Skip token for error recovery.

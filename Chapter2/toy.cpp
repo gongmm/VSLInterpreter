@@ -12,8 +12,8 @@ void MainLoop() {
     /*fprintf(stderr, "ready> ");*/
     switch (CurTok) {
     case TOKEOF:
-      if (hasMainFunction)
-        processMain();
+      //if (hasMainFunction)
+       // processMain();
       return;
     case FUNC:
       HandleDefinition();
@@ -189,11 +189,15 @@ int main() {
 
   /***********************************************************************************/
   auto H = TheJIT->addModule(std::move(TheModule));
-  auto ExprSymbol = TheJIT->findSymbol("main");
-  assert(ExprSymbol && "Function not found");
-  double(*FP)() = (double(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
-  fprintf(stderr, "Evaluated to %f\n", FP());
-  // Delete the anonymous expression module from the JIT.
+  if (hasMainFunction) {
+	  auto ExprSymbol = TheJIT->findSymbol("main");
+	  assert(ExprSymbol && "Function not found");
+	  double(*FP)() = (double(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
+	  fprintf(stderr, "Evaluated to %f\n", FP());
+  }
+  else {
+	  fprintf(stderr, "don't have main function!\n");
+  }
   TheJIT->removeModule(H);
 
   // Initialize the target registry etc.
