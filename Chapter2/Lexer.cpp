@@ -113,6 +113,14 @@ int gettok() {
 	if (LastChar == '"') {
 		LastChar = advance();
 		while (LastChar != '"') {
+			if (LastChar == '\\') {
+                    if (LastChar == 'n')
+                      LastChar = '\n';
+                    else if (LastChar == 't')
+                      LastChar = '\t';
+                    else if (LastChar == '\\')
+                      LastChar = '\\';
+			}
 			Text += LastChar;
 			LastChar = advance();
 		}
