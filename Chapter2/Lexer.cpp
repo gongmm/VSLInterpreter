@@ -114,6 +114,7 @@ int gettok() {
 		LastChar = advance();
 		while (LastChar != '"') {
 			if (LastChar == '\\') {
+				LastChar = advance();
                     if (LastChar == 'n')
                       LastChar = '\n';
                     else if (LastChar == 't')
