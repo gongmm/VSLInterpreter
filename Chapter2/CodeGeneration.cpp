@@ -645,6 +645,8 @@ Value * WhileStatAST::codegen()
 	// insert LoopBB.
 	Builder.SetInsertPoint(LoopBB);
 	
+	parent->loop = LoopBB;
+	parent->after = AfterBB;
 	// Do statement 中间代码生成
 	if (!DoStat->codegen())
 		return nullptr;
@@ -660,8 +662,7 @@ Value * WhileStatAST::codegen()
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-	parent->loop = LoopBB;
-	parent->after = AfterBB;
+
 
 	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
