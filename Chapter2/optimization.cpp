@@ -16,15 +16,15 @@ void InitializeModule() {
 //    TheFPM->add(createPromoteMemoryToRegisterPass());
 
 	// Do simple "peephole" optimizations and bit-twiddling optzns.
-//	TheFPM->add(createInstructionCombiningPass());
+	TheFPM->add(createInstructionCombiningPass());
 	// Reassociate expressions.
-//	TheFPM->add(createReassociatePass());
+	TheFPM->add(createReassociatePass());
 	// Eliminate Common SubExpressions.
-//	TheFPM->add(createGVNPass());
+	TheFPM->add(createGVNPass());
 	// Simplify the control flow graph (deleting unreachable blocks, etc).
-//	TheFPM->add(createCFGSimplificationPass());
+	TheFPM->add(createCFGSimplificationPass());
 
-	//TheFPM->doInitialization();
+	TheFPM->doInitialization();
 }
 Function *getFunction(std::string Name) {
 	// First, see if the function has already been added to the current module.

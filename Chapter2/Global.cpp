@@ -116,6 +116,6 @@ std::unique_ptr<Module> TheModule;
 // std::map<std::string, Value *> NamedValues;
 std::map<std::string, AllocaInst *> NamedValues;
 
-// std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+ std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 std::unique_ptr<KaleidoscopeJIT> TheJIT;
 std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
