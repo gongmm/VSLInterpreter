@@ -660,7 +660,8 @@ Value * WhileStatAST::codegen()
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-    
+	parent->loop = LoopBB;
+	parent->after = AfterBB;
 
 	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
@@ -766,7 +767,10 @@ Value * BlockStatAST::codegen()
 
 Value * ContinueStatAST::codegen()
 {
-    KSDbgInfo.emitLocation(this);
-	return nullptr;
+	KSDbgInfo.emitLocation(this);
+	//parent->con = Builder.CreateFCmpONE(ConstantFP::get(TheContext, APFloat(1.0)), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+	//Builder.CreateCondBr(ConstantFP::get(TheContext, APFloat(1.0)), parent->loop, parent->after);
+	Builder.CreateBr(parent->loop);
+	return ConstantFP::get(TheContext, APFloat(1.0));
 }
 

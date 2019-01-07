@@ -230,7 +230,12 @@ std::unique_ptr<StatAST> ParseWhileStat() {
 	print("DONE keyword\n");
 	indent = indentBefore;
 	getNextToken();
-	return llvm::make_unique<WhileStatAST>(WhileLoc,std::move(WhileCondition), std::move(DoStat));
+	Bag * bag = new Bag();
+	//DoStat->parent = bag;
+	DoStat->addParent(bag);
+	std::unique_ptr<WhileStatAST> whilestate = llvm::make_unique<WhileStatAST>(WhileLoc, std::move(WhileCondition), std::move(DoStat));
+	whilestate->parent = bag;
+	return std::move(whilestate);
 }
 //Block Statement
 std::unique_ptr<StatAST> ParseBlockStat() {
