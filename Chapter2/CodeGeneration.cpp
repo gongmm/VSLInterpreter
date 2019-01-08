@@ -452,21 +452,21 @@ Value * PrintStatAST::codegen()
             text.reset((TextExprAST*)ptr);
             for (int j = 0; j < text->getText().size(); j++) {
                 char t1 = text->getText().at(j);
-            /*    if (t1 == '\\') {
-                    j++;
-                    if (j >= text->getText().size())
-                        return LogErrorV("input String is not right!");
-                    t1 = text->getText().at(j);
-                    if (t1 == 'n') {
-                        t1 = '\n';
-                    }
-                    else if (t1 == '\\') {
-                        t1 = '\\';
-                    }
-                    else if (t1 == '\"') {
-                        t1 = '\"';
-                    }
-                }*/
+			/*	if (t1 == '\\') {
+					j++;
+					if (j >= text->getText().size())
+						return LogErrorV("input String is not right!");
+					t1 = text->getText().at(j);
+					if (t1 == 'n') {
+						t1 = '\n';
+					}
+					else if (t1 == '\\') {
+						t1 = '\\';
+					}
+					else if (t1 == '\"') {
+						t1 = '\"';
+					}
+				}*/
                 Function *CalleeF = getFunction("putchard");
                 if (!CalleeF)
                     return LogErrorV("Unknown function referenced");
@@ -659,7 +659,7 @@ Value * WhileStatAST::codegen()
 	Condition = Builder.CreateICmpNE(Condition, Builder.getInt32(0), "whilecond");
     //Condition=Builder.CreateFCmpONE(Condition, ConstantInt::get(TheContext, APInt(32,0)), "whilecond");
 
-    // branch base on startcond
+    // branch base on endcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
 
 
