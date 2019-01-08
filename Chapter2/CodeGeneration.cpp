@@ -445,13 +445,13 @@ Value * PrintStatAST::codegen()
 		if (ptr != nullptr) {
 			Exp.release();
 		}
-//        const char* typeName = typeid(*ptr).name();
-//        const char* className = typeid(TextExprAST).name();
-//        if (strcmp(typeName, className) == 0) {
-//            std::unique_ptr<TextExprAST> text;
-//            text.reset((TextExprAST*)ptr);
-//            for (int j = 0; j < text->getText().size(); j++) {
-//                char t1 = text->getText().at(j);
+        const char* typeName = typeid(*ptr).name();
+        const char* className = typeid(TextExprAST).name();
+        if (strcmp(typeName, className) == 0) {
+            std::unique_ptr<TextExprAST> text;
+            text.reset((TextExprAST*)ptr);
+            for (int j = 0; j < text->getText().size(); j++) {
+                char t1 = text->getText().at(j);
 			/*	if (t1 == '\\') {
 					j++;
 					if (j >= text->getText().size())
@@ -467,16 +467,16 @@ Value * PrintStatAST::codegen()
 						t1 = '\"';
 					}
 				}*/
-//                Function *CalleeF = getFunction("putchard");
-//                if (!CalleeF)
-//                    return LogErrorV("Unknown function referenced");
-//                std::vector<Value *> ArgsV;
-//                ArgsV.push_back(ConstantInt::get(TheContext, APInt(32,(int)(t1))));
-//                //ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(t1))));
-//                Builder.CreateCall(CalleeF, ArgsV, "calltmp");
-//            }
-//        }
-//        else {
+                Function *CalleeF = getFunction("putchard");
+                if (!CalleeF)
+                    return LogErrorV("Unknown function referenced");
+                std::vector<Value *> ArgsV;
+                ArgsV.push_back(ConstantInt::get(TheContext, APInt(32,(int)(t1))));
+                //ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(t1))));
+                Builder.CreateCall(CalleeF, ArgsV, "calltmp");
+            }
+        }
+        else {
 			std::unique_ptr<ExprAST> temp;
 			temp.reset(ptr);
 			Function *CalleeF = getFunction("printd");
@@ -486,7 +486,7 @@ Value * PrintStatAST::codegen()
 			Value* value = temp->codegen();
 			ArgsV.push_back(value);
 			Builder.CreateCall(CalleeF, ArgsV, "calltmp");
-//        }
+        }
 	}
 	return ConstantInt::get(TheContext, APInt(32,(int)(0)));
 }
