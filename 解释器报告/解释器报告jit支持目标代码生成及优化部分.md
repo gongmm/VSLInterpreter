@@ -35,6 +35,8 @@ auto TargetTriple = sys::getDefaultTargetTriple();
 
 将Module加入到JIT中，实现即时编译，其中，句柄H用于操作完成后释放Module有关数据的内存空间。
 
+并调用利用jit找到main函数的地址，调用main函数，将结果显示在屏幕上。
+
 ```c++
 auto H = TheJIT->addModule(std::move(TheModule));
 if (hasMainFunction) {
