@@ -16,3 +16,15 @@ Chapter2/.DS_Store
 .DS_Store
 .DS_Store
 Chapter2/Global.h
+*.cmake
+*.stamp
+*.log
+*.tlog
+*.depend
+*.vcxproj
+*.filters
+*.obj
+Chapter2/output.o
+Chapter2/Kaleidoscope-Ch2.vcxproj.user
+Chapter2/Kaleidoscope-Ch2.dir/Debug/windows_version_resource.res
+Chapter2/Kaleidoscope-Ch2.dir/Debug/vc141.pdb

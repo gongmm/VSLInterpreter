@@ -31,14 +31,22 @@ struct DebugInfo {
 		Builder.SetCurrentDebugLocation(
 			DebugLoc::get(ast->getLine(), ast->getCol(), Scope));
 	}
+	DIType *getIntTy() {
+		if (DblTy)
+			return DblTy;
 
-	DIType *getDoubleTy() {
+		DblTy = DBuilder->createBasicType("int", 32, dwarf::DW_ATE_unsigned);
+		return DblTy;
+	}
+	
+
+	/*DIType *getDoubleTy() {
 		if (DblTy)
 			return DblTy;
 
 		DblTy = DBuilder->createBasicType("double", 64, dwarf::DW_ATE_float);
 		return DblTy;
-	}
+	}*/
 };
 
 extern DebugInfo KSDbgInfo;

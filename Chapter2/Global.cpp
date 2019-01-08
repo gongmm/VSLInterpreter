@@ -6,7 +6,7 @@
 #include <string>
 
 std::string IdentifierStr;
-double NumVal;
+int NumVal;
 std::string Text;
 //===-------------------
 // Parser
