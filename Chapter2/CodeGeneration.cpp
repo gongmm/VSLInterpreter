@@ -362,7 +362,7 @@ Function *FunctionAST::codegen() {
 		verifyFunction(*TheFunction);
 
 		// Run the optimizer on the function.
-		//TheFPM->run(*TheFunction);
+		TheFPM->run(*TheFunction);
 
 		//更新isMain值
 		if (P.getName() == "main") {
@@ -637,11 +637,14 @@ Value * WhileStatAST::codegen()
 	//Condition = Builder.CreateFCmpONE(Condition, ConstantInt::get(TheContext, APInt(32,0)), "whilecond");
 	// branch base on startcond
 	Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-    
+	parent->loop = LoopBB;
+	parent->after = AfterBB;
 	
 	// insert LoopBB.
 	Builder.SetInsertPoint(LoopBB);
 	
+	parent->loop = LoopBB;
+	parent->after = AfterBB;
 	// Do statement 中间代码生成
 	if (!DoStat->codegen())
 		return nullptr;
@@ -657,7 +660,7 @@ Value * WhileStatAST::codegen()
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-    
+
 
 	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
@@ -763,7 +766,10 @@ Value * BlockStatAST::codegen()
 
 Value * ContinueStatAST::codegen()
 {
-    KSDbgInfo.emitLocation(this);
-	return nullptr;
+	KSDbgInfo.emitLocation(this);
+	//parent->con = Builder.CreateFCmpONE(ConstantFP::get(TheContext, APFloat(1.0)), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+	//Builder.CreateCondBr(ConstantFP::get(TheContext, APFloat(1.0)), parent->loop, parent->after);
+	Builder.CreateBr(parent->loop);
+	return ConstantFP::get(TheContext, APFloat(1.0));
 }
 

@@ -5,7 +5,9 @@
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/Passes.h"
 #include "llvm/IR/DIBuilder.h"
-//#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/IR/BasicBlock.h"
 //#include "llvm/IR/Constants.h"
 //#include "llvm/IR/DerivedTypes.h"
@@ -40,7 +42,11 @@
 using namespace llvm;
 using namespace llvm::orc;
 //using namespace llvm::sys;
-
+class Bag {
+public:
+	BasicBlock * loop;
+	BasicBlock* after;
+};
 struct SourceLocation {
     int Line;
     int Col;
@@ -170,10 +176,12 @@ public:
 		return Text;
 	}
 };
-
+class Bag;
 class StatAST{
     SourceLocation Loc;
 public:
+	Bag * parent;
+	virtual void addParent(Bag* bag) {}
     StatAST(SourceLocation Loc = CurLoc) : Loc(Loc) {}
     virtual ~StatAST()= default;
     
@@ -285,10 +293,14 @@ public:
 };
 class ContinueStatAST : public StatAST {
 	Value *codegen() override;
-    raw_ostream &dump(raw_ostream &out, int ind) override {
-        StatAST::dump(out<<"continue ", ind);
-        return out;
-    }
+	raw_ostream &dump(raw_ostream &out, int ind) override {
+		StatAST::dump(out << "continue ", ind);
+		return out;
+	}
+public:
+	void addParent(Bag* bag) {
+		this->parent = bag;
+	}
 };
 class IfStatAST : public StatAST {
     //condition's value
@@ -297,6 +309,12 @@ class IfStatAST : public StatAST {
 	std::unique_ptr<StatAST> ThenStat;
 	std::unique_ptr<StatAST> ElseStat;
 public:
+	void addParent(Bag* bag) {
+		if (ThenStat != nullptr)
+			ThenStat->addParent(bag);
+		if (ElseStat != nullptr)
+			ElseStat->addParent(bag);
+	}
 	IfStatAST(SourceLocation Loc,std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat, std::unique_ptr<StatAST> ElseStat)
 		: StatAST(Loc), IfCondition(std::move(IfCondition)), ThenStat(std::move(ThenStat)), ElseStat(std::move(ElseStat)) {}
 	IfStatAST(SourceLocation Loc,std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat) : StatAST(Loc), IfCondition(std::move(IfCondition)),
@@ -335,7 +353,11 @@ class BlockStatAST : public StatAST {
 	std::vector<std::unique_ptr<StatAST>> Statements;
 	//std::map<std::string, llvm::Value*> locals;
 public:
-	
+	void addParent(Bag* bag) {
+		for (int i = 0; i < Statements.size();i++) {
+			Statements[i]->addParent(bag);
+		}
+	}
 	/*BlockStatAST(SourceLocation Loc, std::vector<std::unique_ptr<ExprAST>> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
 		: StatAST(Loc), Variables(std::move(Variables)), Statements(std::move(Statements)) {}*/
 	BlockStatAST(SourceLocation Loc, std::vector<std::string> Variables, std::vector<std::unique_ptr<StatAST>> Statements)
