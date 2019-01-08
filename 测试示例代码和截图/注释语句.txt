@@ -1,3 +1,4 @@
+// в╒ймсО╬Д
 FUNC main(){
 	// this is a comment
 	RETURN 0

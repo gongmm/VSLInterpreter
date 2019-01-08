@@ -1,11 +1,11 @@
 FUNC main(){
 	VAR i
 	i:= 0
-	WHILE 11-I
+	WHILE 11-i
 	DO
 	{
-		PRINT I
-		I := I+1
+		PRINT i
+		i := i+1
 	}
 	DONE
 }
