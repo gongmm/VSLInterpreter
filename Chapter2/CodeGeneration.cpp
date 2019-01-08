@@ -770,6 +770,6 @@ Value * ContinueStatAST::codegen()
 	//parent->con = Builder.CreateFCmpONE(ConstantFP::get(TheContext, APFloat(1.0)), ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 	//Builder.CreateCondBr(ConstantFP::get(TheContext, APFloat(1.0)), parent->loop, parent->after);
 	Builder.CreateBr(parent->loop);
-	return ConstantFP::get(TheContext, APFloat(1.0));
+	return ConstantInt::get(TheContext, APInt(32,1));
 }
 
