@@ -32,7 +32,7 @@ static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 	const std::string &VarName) {
 	IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
 		TheFunction->getEntryBlock().begin());
-	return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), nullptr, VarName.c_str());
+	return TmpB.CreateAlloca(Type::getInt32Ty(TheContext), nullptr, VarName.c_str());
 }
 
 
@@ -45,7 +45,7 @@ std::unique_ptr<DIBuilder> DBuilder;
 
 static DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
     SmallVector<Metadata *, 8> EltTys;
-    DIType *DblTy = KSDbgInfo.getDoubleTy();
+    DIType *DblTy = KSDbgInfo.getIntTy();
     
     // Add the result type.
     EltTys.push_back(DblTy);
@@ -59,7 +59,8 @@ static DISubroutineType *CreateFunctionType(unsigned NumArgs, DIFile *Unit) {
 Value *NumberExprAST::codegen() {
 	//return ConstantInt::get(Builder.getInt32Ty(), this->Val, true);
     KSDbgInfo.emitLocation(this);
-	return ConstantFP::get(TheContext, APFloat(Val));
+	return ConstantInt::get(TheContext, APInt(32, Val, true));
+	//return ConstantFP::get(TheContext, APFloat(Val));
 }
 
 Value *VariableExprAST::codegen() {
@@ -99,7 +100,8 @@ Value *VarExprAST::codegen() {
 				return nullptr;
 		}
 		else { // 如果没有指定, 赋值为 0.0.
-			InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+			InitVal = ConstantInt::get(TheContext, APInt(32,0));
+			//InitVal = ConstantFP::get(TheContext, APFloat(0.0));
 		}
 		// 创建 alloca
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
@@ -172,17 +174,17 @@ Value *BinaryExprAST::codegen() {
 
 	switch (Op) {
 	case '+':
-		return Builder.CreateFAdd(L, R, "addtmp");
+		return Builder.CreateAdd(L, R, "addtmp");
 	case '-':
-		return Builder.CreateFSub(L, R, "subtmp");
+		return Builder.CreateSub(L, R, "subtmp");
 	case '*':
-		return Builder.CreateFMul(L, R, "multmp");
+		return Builder.CreateMul(L, R, "multmp");
 	case '/':
-		return Builder.CreateFDiv(L, R, "divtmp");
+		return Builder.CreateExactSDiv(L, R, "divtmp");
 	case '<':
-		L = Builder.CreateFCmpULT(L, R, "cmptmp");
+		L = Builder.CreateICmpULT(L, R, "cmptmp");
 		// Convert bool 0/1 to double 0.0 or 1.0
-		return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext), "booltmp");
+		return Builder.CreateUIToFP(L, Type::getInt32Ty(TheContext), "booltmp");
 	default:
 		//return LogErrorV("invalid binary operator");
         //若为新增操作符，跳出到下面执行
@@ -240,10 +242,10 @@ Function *PrototypeAST::codegen() {
 	if (TheFunction)
 		return (Function*)LogErrorV("Prototype already exist.");
 
-	// Make the function type:  double(double,double) etc.
-	std::vector<Type *> Doubles(Args.size(), Type::getDoubleTy(TheContext));
+	// Make the function type:  int(int,int) etc.
+	std::vector<Type*> Integers(Args.size(), Type::getInt32Ty(TheContext));
 	FunctionType *FT =
-		FunctionType::get(Type::getDoubleTy(TheContext), Doubles, false);
+		FunctionType::get(Type::getInt32Ty(TheContext), Integers, false);
 
 	// create function
 	Function *F =
@@ -334,7 +336,7 @@ Function *FunctionAST::codegen() {
 		AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
         // Create a debug descriptor for the variable.
         DILocalVariable *D = DBuilder->createParameterVariable(
-                                                               SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
+                                                               SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getIntTy(),
                                                                true);
 
         DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
@@ -469,7 +471,8 @@ Value * PrintStatAST::codegen()
 				if (!CalleeF)
 					return LogErrorV("Unknown function referenced");
 				std::vector<Value *> ArgsV;
-				ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(t1))));
+				ArgsV.push_back(ConstantInt::get(TheContext, APInt(32,(int)(t1))));
+				//ArgsV.push_back(ConstantFP::get(TheContext, APFloat((double)(t1))));
 				Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 			}
 		}
@@ -485,7 +488,7 @@ Value * PrintStatAST::codegen()
 			Builder.CreateCall(CalleeF, ArgsV, "calltmp");
 		}
 	}
-	return ConstantFP::get(TheContext, APFloat((double)(0)));
+	return ConstantInt::get(TheContext, APInt(32,(int)(0)));
 }
 
 Value * IfStatAST::codegen()
@@ -497,18 +500,23 @@ Value * IfStatAST::codegen()
 		return nullptr;
 
 	// Convert condition to a bool by comparing non-equal to 0.0.
-	CondV = Builder.CreateFCmpONE(
-		CondV, ConstantFP::get(TheContext, APFloat(0.0)), "ifcond");
+	CondV = Builder.CreateICmpNE(CondV, Builder.getInt32(0), "ifcond");
+	//CondV = Builder.CreateFCmpONE(CondV, ConstantInt::get(TheContext, APInt(32,0)), "ifcond");
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 
 	// Create blocks for the then and else cases.  Insert the 'then' block at the
 	// end of the function.
 	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else");
+	BasicBlock *ElseBB = ElseBB = BasicBlock::Create(TheContext, "else");
 	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
-
-	Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+	if (ElseStat != nullptr) {
+		Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+	}
+	else {
+		Builder.CreateCondBr(CondV, ThenBB, MergeBB);
+	}
+	
 
 	// Emit then value.
 	Builder.SetInsertPoint(ThenBB);
@@ -520,101 +528,89 @@ Value * IfStatAST::codegen()
 	Builder.CreateBr(MergeBB);
 	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
 	ThenBB = Builder.GetInsertBlock();
-
-
-
-	Value *ElseV = nullptr;
-
-	if (ElseStat) {
-		// Emit else block.
-		TheFunction->getBasicBlockList().push_back(ElseBB);
-		Builder.SetInsertPoint(ElseBB);
-
+	// Emit else block.
+	TheFunction->getBasicBlockList().push_back(ElseBB);
+	Builder.SetInsertPoint(ElseBB);
+	Value *ElseV;
+	if (ElseStat != nullptr) {
 		ElseV = ElseStat->codegen();
 		if (!ElseV)
 			return nullptr;
-
 		Builder.CreateBr(MergeBB);
-		Builder.GetInsertBlock();
 
 	}
-
+	ElseBB = Builder.GetInsertBlock();
 	// Emit merge block.
 	TheFunction->getBasicBlockList().push_back(MergeBB);
 	Builder.SetInsertPoint(MergeBB);
-	PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+	PHINode *PN = Builder.CreatePHI(Type::getInt32Ty(TheContext), 2, "iftmp");
 
 	PN->addIncoming(ThenV, ThenBB);
-	if (ElseStat) {
+	if (ElseStat != nullptr) {
 		PN->addIncoming(ElseV, ElseBB);
 	}
+	else {
+		PN->addIncoming(Constant::getNullValue(Type::getInt32Ty(TheContext)), ElseBB);
+	}
+
 	return PN;
-    /*
-    // Get the current Function object that is being built
-    Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	//if (ElseStat != nullptr) {
+	//	Builder.CreateCondBr(CondV, ThenBB, ElseBB);
 
-      // Create an alloca for the variable in the entry block.
-    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
-    
-    KSDbgInfo.emitLocation(this);
+	//	// Emit then value.
+	//	Builder.SetInsertPoint(ThenBB);
+
+	//	Value *ThenV = ThenStat->codegen();
+	//	if (!ThenV)
+	//		return nullptr;
+
+	//	Builder.CreateBr(MergeBB);
+	//	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	//	ThenBB = Builder.GetInsertBlock();
+	//	// Emit else block.
+	//	TheFunction->getBasicBlockList().push_back(ElseBB);
+	//	Builder.SetInsertPoint(ElseBB);
+	//	ElseV = ElseStat->codegen();
+	//	if (!ElseV)
+	//		return nullptr;
+	//	Builder.CreateBr(MergeBB);
+	//	ElseBB = Builder.GetInsertBlock();
+	//	// Emit merge block.
+	//	TheFunction->getBasicBlockList().push_back(MergeBB);
+	//	Builder.SetInsertPoint(MergeBB);
+	//	PHINode *PN = Builder.CreatePHI(Type::getInt32Ty(TheContext), 2, "iftmp");
+
+	//	PN->addIncoming(ThenV, ThenBB);
+	//	PN->addIncoming(ElseV, ElseBB);
+	//	
+	//	return PN;
+	//}
+	//else {
+	//	Builder.CreateCondBr(CondV, ThenBB, MergeBB);
+	//	// Emit then value.
+	//	Builder.SetInsertPoint(ThenBB);
+
+	//	Value *ThenV = ThenStat->codegen();
+	//	if (!ThenV)
+	//		return nullptr;
+	//	Builder.CreateBr(MergeBB);
+	//	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	//	ThenBB = Builder.GetInsertBlock();
+	//	// Emit else block.
+	//	TheFunction->getBasicBlockList().push_back(ElseBB);
+	//	Builder.SetInsertPoint(ElseBB);
+	//	
+	//	ElseBB = Builder.GetInsertBlock();
+	//	// Emit merge block.
+	//	TheFunction->getBasicBlockList().push_back(MergeBB);
+	//	Builder.SetInsertPoint(MergeBB);
+	//	PHINode *PN = Builder.CreatePHI(Type::getInt32Ty(TheContext), 2, "iftmp");
+
+	//	PN->addIncoming(ThenV, ThenBB);
+	//	PN->addIncoming(Constant::getNullValue(Type::getInt32Ty(TheContext)), ElseBB);
+	//	return PN;
+	//}
 	
-    Value *OldVal=Builder.CreateLoad(NamedValues[VarName]);
-    NamedValues[VarName]=Alloca;
-
-	Value *CondV = IfCondition -> codegen();
-	if (!CondV)
-		return nullptr;
-	// Convert condition to a bool by comparing non-equal to 0.0.
-	CondV = Builder.CreateFCmpONE(CondV, ConstantFP::get(TheContext, APFloat(0.0)), "ifcond");
-
-	// Create blocks for the then and else cases.  
-	// Insert the 'then' block at the end of the function.
-	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else");
-	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
-
-	Builder.CreateCondBr(CondV, ThenBB, ElseBB);
-
-		    // Emit then value.
-    Builder.SetInsertPoint(ThenBB);
-    
-    Value *ThenV = ThenStat -> codegen();
-    if (!ThenV)
-        return nullptr;
-    
-    Builder.CreateStore(ThenV, NamedValues[VarName]);
-    
-    Builder.CreateBr(MergeBB);
-    
-    Value *ElseV=nullptr;
-    
-    if (ElseStat) {
-        // Emit else block.
-        TheFunction->getBasicBlockList().push_back(ElseBB);
-        Builder.SetInsertPoint(ElseBB);
-        
-        ElseV = ElseStat->codegen();
-        if (!ElseV)
-            return nullptr;
-        
-        Builder.CreateStore(ElseV, NamedValues[VarName]);
-        Builder.CreateBr(MergeBB);
-        
-    }
-    
-    TheFunction->getBasicBlockList().push_back(MergeBB);
-    Builder.SetInsertPoint(MergeBB);
-    
-    Value *result=Builder.CreateLoad(NamedValues[VarName]);
-    
-    // Restore the unshadowed variable.t
-    if (OldVal)
-        Builder.CreateStore(OldVal, NamedValues[VarName]);
-    else
-        NamedValues.erase(VarName);
-   
-    return result;
-	*/
 }
 
 
@@ -637,7 +633,8 @@ Value * WhileStatAST::codegen()
 	BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloop", TheFunction);
     
 	// 和0比较
-	Condition = Builder.CreateFCmpONE(Condition, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+	Condition = Builder.CreateICmpNE(Condition, Builder.getInt32(0), "whilecond");
+	//Condition = Builder.CreateFCmpONE(Condition, ConstantInt::get(TheContext, APInt(32,0)), "whilecond");
 	// branch base on startcond
 	Builder.CreateCondBr(Condition, LoopBB, AfterBB);
     
@@ -655,8 +652,8 @@ Value * WhileStatAST::codegen()
 	if (!Condition)
 		return nullptr;
 
- 
-    Condition=Builder.CreateFCmpONE(Condition, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
+	Condition = Builder.CreateICmpNE(Condition, Builder.getInt32(0), "whilecond");
+    //Condition=Builder.CreateFCmpONE(Condition, ConstantInt::get(TheContext, APInt(32,0)), "whilecond");
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
@@ -666,7 +663,7 @@ Value * WhileStatAST::codegen()
 	Builder.SetInsertPoint(AfterBB);
 
 	// while循环的代码生成总是返回0.0
-	return Constant::getNullValue(Type::getDoubleTy(TheContext));
+	return Constant::getNullValue(Type::getInt32Ty(TheContext));
 }
 
 
@@ -683,7 +680,7 @@ Value * BlockStatAST::codegen()
 		
 
 		// 在将变量添加到作用于前获得初始化表达式，防止初始化表达式中使用变量本身
-		Value* InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+		Value* InitVal = ConstantInt::get(TheContext, APInt(32,0));
 		// 如果没有指定, 赋值为 0.0.
 		
 		// 创建 alloca

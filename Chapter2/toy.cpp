@@ -35,7 +35,7 @@ void MainLoop() {
 #endif
 
 /// putchard - putchar that takes a double and returns 0.
-extern "C" DLLEXPORT double putchard(double X) {
+extern "C" DLLEXPORT int putchard(int X) {
 	fputc((char)X, stdout);
 return 0;
 }
@@ -58,7 +58,7 @@ return 0;
 //	return 0;
 //}
 /// printd - printf that takes a double prints it as "%f\n", returning 0.
-extern "C" DLLEXPORT double printd(double X) {
+extern "C" DLLEXPORT int printd(int X) {
 	fprintf(stderr, "%d", (int)X);
 	return 0;
 }
@@ -192,8 +192,8 @@ int main() {
   if (hasMainFunction) {
 	  auto ExprSymbol = TheJIT->findSymbol("main");
 	  assert(ExprSymbol && "Function not found");
-	  double(*FP)() = (double(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
-	  fprintf(stderr, "Evaluated to %f\n", FP());
+	  int(*FP)() = (int(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
+	  fprintf(stderr, "Evaluated to %d\n", FP());
   }
   else {
 	  fprintf(stderr, "don't have main function!\n");

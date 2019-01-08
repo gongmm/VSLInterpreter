@@ -71,10 +71,10 @@ public:
 
 /// NumberExprAST - Expression class for numeric literals like "1.0".
 class NumberExprAST : public ExprAST {
-  double Val;
+  int Val;
 
 public:
-  NumberExprAST(double Val) : Val(Val) {}
+  NumberExprAST(int Val) : Val(Val) {}
   raw_ostream &dump(raw_ostream &out, int ind) override {
         return ExprAST::dump(out << Val, ind);
     }

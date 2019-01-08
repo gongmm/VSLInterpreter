@@ -20,7 +20,7 @@ using namespace llvm::sys;
 //===----------------------------------------------------------------------===//
 
 extern std::string IdentifierStr;
-extern double NumVal;
+extern int NumVal;
 extern std::string Text;
 enum Token {
 	VARIABLE = -1,

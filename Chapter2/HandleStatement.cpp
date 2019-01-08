@@ -259,7 +259,8 @@ std::unique_ptr<StatAST> ParseBlockStat() {
 				variables.push_back(std::move(Arg));*/
 			/*else
 				return nullptr;*/
-			//若返回空 要报错
+			//若返回空 
+			getNextToken();
 			if (CurTok != ',')
 				break;
 			getNextToken();
