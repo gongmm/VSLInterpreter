@@ -172,7 +172,7 @@ public:
 		return Text;
 	}
 };
-
+class Bag;
 class StatAST{
     SourceLocation Loc;
 public:

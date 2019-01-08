@@ -640,7 +640,8 @@ Value * WhileStatAST::codegen()
 	Condition = Builder.CreateFCmpONE(Condition, ConstantFP::get(TheContext, APFloat(0.0)), "whilecond");
 	// branch base on startcond
 	Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-    
+	parent->loop = LoopBB;
+	parent->after = AfterBB;
 	
 	// insert LoopBB.
 	Builder.SetInsertPoint(LoopBB);
@@ -660,8 +661,7 @@ Value * WhileStatAST::codegen()
 
     // branch base on startcond
     Builder.CreateCondBr(Condition, LoopBB, AfterBB);
-	parent->loop = LoopBB;
-	parent->after = AfterBB;
+
 
 	// code afterwards added to afterbb
 	Builder.SetInsertPoint(AfterBB);
