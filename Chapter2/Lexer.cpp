@@ -76,9 +76,11 @@ int gettok() {
 	//蔵detify comment
 	if (LastChar == '/') {
 		LastChar = advance();
-          if (LastChar == '/')
-            while (LastChar != '\n')
-              LastChar = advance();
+		if (LastChar == '/') {
+			while (LastChar != '\n')
+				LastChar = advance();
+			LastChar = advance();
+		}
           else
             return '/';
 	}
