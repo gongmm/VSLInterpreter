@@ -196,8 +196,9 @@ int main() {
   if (hasMainFunction) {
 	  auto ExprSymbol = TheJIT->findSymbol("main");
 	  assert(ExprSymbol && "Function not found");
+	  fprintf(stderr, "\nÊä³ö£º\n");
 	  int(*FP)() = (int(*)())(intptr_t)cantFail(ExprSymbol.getAddress());
-	  fprintf(stderr, "Evaluated to %d\n", FP());
+	  fprintf(stderr, "\nmain return %d\n", FP());
   }
   else {
 	  fprintf(stderr, "don't have main function!\n");
