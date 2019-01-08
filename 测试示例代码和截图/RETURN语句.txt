@@ -1,0 +1,3 @@
+FUNC main(){
+	RETURN 1
+}

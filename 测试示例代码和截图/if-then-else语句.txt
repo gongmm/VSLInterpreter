@@ -1,0 +1,12 @@
+FUNC main(){
+	VAR i
+	i := 1
+
+	IF i-1
+	THEN
+		PRINT "THEN"
+	ELSE
+		PRINT "ELSE"
+	FI
+	RETURN i
+}
