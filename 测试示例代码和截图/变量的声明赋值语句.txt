@@ -1,0 +1,6 @@
+// 变量的声明赋值语句
+FUNC main(){
+	VAR a
+	a:=1
+	RETURN a
+}
