@@ -176,14 +176,14 @@ int main() {
   legacy::PassManager pass;
   auto FileType = TargetMachine::CGFT_ObjectFile;
 
-  if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType)) {
-     errs() << "TheTargetMachine can't emit a file of this type";
-     return 1;
-  }
-//    if (TheTargetMachine->addPassesToEmitFile(pass, dest,NULL, FileType)) {
-//        errs() << "TheTargetMachine can't emit a file of this type";
-//        return 1;
-//    }
+//  if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType)) {
+//     errs() << "TheTargetMachine can't emit a file of this type";
+//     return 1;
+//  }
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest,NULL, FileType)) {
+        errs() << "TheTargetMachine can't emit a file of this type";
+        return 1;
+    }
 
   pass.run(*TheModule);
   dest.flush();
