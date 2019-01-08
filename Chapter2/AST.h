@@ -42,7 +42,11 @@
 using namespace llvm;
 using namespace llvm::orc;
 //using namespace llvm::sys;
-
+class Bag {
+public:
+	BasicBlock * loop;
+	BasicBlock* after;
+};
 struct SourceLocation {
     int Line;
     int Col;
@@ -307,9 +311,9 @@ class IfStatAST : public StatAST {
 public:
 	void addParent(Bag* bag) {
 		if (ThenStat != nullptr)
-			ThenStat->parent = bag;
+			ThenStat->addParent(bag);
 		if (ElseStat != nullptr)
-			ElseStat->parent = bag;
+			ElseStat->addParent(bag);
 	}
 	IfStatAST(SourceLocation Loc,std::unique_ptr<ExprAST> IfCondition, std::unique_ptr<StatAST> ThenStat, std::unique_ptr<StatAST> ElseStat)
 		: StatAST(Loc), IfCondition(std::move(IfCondition)), ThenStat(std::move(ThenStat)), ElseStat(std::move(ElseStat)) {}
@@ -394,17 +398,6 @@ public:
         Body->dump(debugIndent(out, ind+1), ind+1);
         return out;
     }
-};
-class Bag {
-public:
-	BasicBlock* loop;
-	BasicBlock* after;
-	Value* con;
-	Bag() {
-		loop = NULL;
-		after = NULL;
-		con = NULL;
-	}
 };
 
 
