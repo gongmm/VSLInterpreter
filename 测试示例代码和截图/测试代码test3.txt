@@ -1,0 +1,15 @@
+FUNC a(){
+PRINT 1,"\n"
+RETURN 1
+}
+FUNC main(){
+PRINT a(),b(),c()
+}
+FUNC b(){
+PRINT c()+a()
+RETURN 2
+}
+FUNC c(){
+PRINT 1,"\n"
+RETURN 3
+}

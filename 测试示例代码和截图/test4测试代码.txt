@@ -1,0 +1,8 @@
+FUNC main(){
+VAR a,b,c
+a:=1
+b:=2
+c:=4
+PRINT (a*b+c/2)*2+1
+RETURN 0
+}

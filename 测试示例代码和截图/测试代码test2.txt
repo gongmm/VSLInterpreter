@@ -1,0 +1,15 @@
+FUNC main(){
+VAR i
+i:=0
+WHILE 11-i
+DO{
+i:=i+1
+IF i-5
+THEN
+PRINT "one time\n"
+ELSE
+CONTINUE
+FI
+}
+DONE
+}
