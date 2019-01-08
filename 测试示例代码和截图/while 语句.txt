@@ -1,0 +1,11 @@
+FUNC main(){
+	VAR i
+	i:= 0
+	WHILE 11-i
+	DO
+	{
+		PRINT i
+		i := i+1
+	}
+	DONE
+}
